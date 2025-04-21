@@ -3,16 +3,25 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  ActivityIndicator,
   StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import  { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
 import { Colors } from '../../../constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { doc, setDoc } from 'firebase/firestore';
-import { db, auth } from './../../../configs/FirebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { db, auth } from '../../../configs/FirebaseConfig';
+import { doc, setDoc } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+} from 'react-native-reanimated';
 
 export default function SignUp() {
   const navigation = useNavigation();
@@ -22,6 +31,46 @@ export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const headerOpacity = useSharedValue(0);
+  const headerTranslateY = useSharedValue(-20);
+  const formOpacity = useSharedValue(0);
+  const formTranslateY = useSharedValue(30);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerTransparent: true,
+      headerTitle: '',
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => router.replace('/auth/sign-in')}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.black} />
+        </TouchableOpacity>
+      ),
+    });
+
+    // Animate header
+    headerOpacity.value = withTiming(1, { duration: 500 });
+    headerTranslateY.value = withSpring(0, { damping: 10 });
+
+    // Animate form
+    formOpacity.value = withTiming(1, { duration: 500 });
+    formTranslateY.value = withSpring(0, { damping: 10 });
+  }, []);
+
+  const headerAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: headerOpacity.value,
+    transform: [{ translateY: headerTranslateY.value }],
+  }));
+
+  const formAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: formOpacity.value,
+    transform: [{ translateY: formTranslateY.value }],
+  }));
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     Toast.show({
@@ -32,261 +81,262 @@ export default function SignUp() {
     });
   };
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: true,
-      headerTransparent: true,
-      headerTitle: '',
-      headerLeft: () => (
-        <TouchableOpacity
-          onPress={() => router.replace('/auth/sign-in')}
-          style={{
-            marginLeft: 5,
-            padding: 8,
-            borderRadius: 10,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-      ),
-    });
-  }, []);
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
 
-  const OnCreateAccount = async () => {
+  const handleSignUp = async () => {
     if (!email || !password || !fullName || !selectedRole) {
       showToast('Please enter all details', 'error');
       return;
     }
 
+    if (!emailRegex.test(email)) {
+      showToast('Please enter a valid email', 'error');
+      return;
+    }
+
+    if (!passwordRegex.test(password)) {
+      showToast('Password must be at least 6 characters with letters and numbers', 'error');
+      return;
+    }
+
+    setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      await setDoc(doc(db, 'Travler', user.uid), {
-        uid: user.uid,
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, {
         fullName,
         email,
         role: selectedRole,
         createdAt: new Date(),
-        updatedAt: new Date(), // optional
-        phoneNumber: '',   
-        password,    // default empty, update later
-        address: '',           // default empty
-        profileImage: '',      // default profile image or URL
-        isActive: true,        // to manage user status
       });
-      
-      // Show success toast
+
       showToast('Account created successfully');
+      if (selectedRole === 'Traveler') {
+        router.replace('/apps/(traveler)/mytrip');
+      } else if (selectedRole === 'Business') {
+        router.replace('/apps/(business-owner)/HomeBusiness');
+      }
     } catch (error: any) {
-      console.error('Signup error:', error);
-      showToast(error.message, 'error');
+      let msg = 'Something went wrong';
+      if (error.code === 'auth/email-already-in-use') msg = 'Email already in use';
+      else if (error.code === 'auth/weak-password') msg = 'Password is too weak';
+      else if (error.code === 'auth/invalid-email') msg = 'Invalid email address';
+      showToast(msg, 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
+  const getRoleButtonStyle = (role: string) => ({
+    ...styles.roleButton,
+    ...(selectedRole === role && styles.selectedRole),
+  });
+
   return (
-    <View style={{ padding: 25, paddingTop: 50, backgroundColor: Colors.white, height: '100%' }}>
-      <Text style={{ fontFamily: 'outfit-bold', fontSize: 25, marginTop: 30 }}>
-        Create New Account
-      </Text>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+      <Animated.View style={[styles.header, headerAnimatedStyle]}>
+        <Text style={styles.title}>Create Account</Text>
+      </Animated.View>
 
-      {/* Full Name */}
-      <View>
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your full name"
-          value={fullName}
-          onChangeText={setFullName}
-        />
-      </View>
+      <Animated.View style={[styles.formContainer, formAnimatedStyle]}>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Full Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your full name"
+            value={fullName}
+            onChangeText={setFullName}
+          />
+        </View>
 
-      {/* Email */}
-      <View>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
-      </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Email</Text>
+          <View style={styles.inputWrapper}>
+            <Ionicons name="mail-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
+        </View>
 
-      {/* Password */}
-      <View>
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          secureTextEntry
-          style={styles.input}
-          placeholder="Enter your password"
-          value={password}
-          onChangeText={setPassword}
-        />
-      </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your password"
+            secureTextEntry={true}
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
 
-      {/* Role Selection */}
-      <Text style={styles.roleLabel}>Select your role:</Text>
-      <View style={styles.roleContainer}>
-        <TouchableOpacity
-          onPress={() => setSelectedRole('Traveler')}
-          style={[
-            styles.roleButton,
-            {
-              backgroundColor: selectedRole === 'Traveler' ? Colors.Primary : Colors.white,
-            },
-          ]}
-        >
-          <Text
-            style={{
-              color: selectedRole === 'Traveler' ? Colors.white : Colors.Primary,
-              textAlign: 'center',
-              fontFamily: 'outfit',
-            }}
-          >
-            Traveler
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Select Role</Text>
+          <View style={styles.roleButtonsContainer}>
+            <TouchableOpacity
+              onPress={() => setSelectedRole('Traveler')}
+              style={getRoleButtonStyle('Traveler')}
+            >
+              <Text style={styles.roleButtonText}>Traveler</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setSelectedRole('Business')}
+              style={getRoleButtonStyle('Business')}
+            >
+              <Text style={styles.roleButtonText}>Business</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         <TouchableOpacity
-          onPress={() => {setSelectedRole('Business-Owner');
-            router.replace('./../auth/BusinessRegister')
-          }}
-
-          style={[
-            styles.roleButton,
-            {
-              backgroundColor: selectedRole === 'Business-Owner' ? Colors.Primary : Colors.white,
-            },
-          ]}
+          onPress={handleSignUp}
+          style={[styles.signUpButton, loading && styles.signUpButtonDisabled]}
+          disabled={loading}
         >
-          <Text
-            style={{
-              color: selectedRole === 'Business-Owner' ? Colors.white : Colors.Primary,
-              textAlign: 'center',
-              fontFamily: 'outfit',
-            }}
-          >
-            Business Owner
-          </Text>
+          {loading ? (
+            <ActivityIndicator color={Colors.white} />
+          ) : (
+            <Text style={styles.signUpButtonText}>Sign Up</Text>
+          )}
         </TouchableOpacity>
-      </View>
 
-      {/* Create Account Button */}
-      <TouchableOpacity onPress={OnCreateAccount} style={styles.createBtn}>
-        <Text style={styles.createBtnText}>Create Account</Text>
-      </TouchableOpacity>
-
-      {/* Sign In Button */}
-      <TouchableOpacity onPress={() => router.replace('/auth/sign-in')} style={styles.signInBtn}>
-        <Text style={styles.signInText}>Sign In</Text>
-      </TouchableOpacity>
+        <View style={styles.signInContainer}>
+          <Text style={styles.signInText}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => router.replace('/auth/sign-in')}>
+            <Text style={styles.signInLink}>Sign In</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
 
       <Toast />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
   },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 30,
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.gray[300],
+    borderRadius: 12,
+    paddingHorizontal: 16,
   },
-  backButton: {
-    marginBottom: 15,
-    alignSelf: 'flex-start',
+  inputIcon: {
+    marginRight: 10,
+  },
+  header: {
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 30,
   },
   title: {
-    fontFamily: 'outfit-bold',
     fontSize: 28,
-    color: Colors.light.text,
-    marginBottom: 5,
+    fontWeight: 'bold',
+    color: Colors.black,
+    marginBottom: 10,
   },
-  subtitle: {
-    fontFamily: 'outfit',
-    fontSize: 15,
-    color: Colors.Gray,
-    marginBottom: 25,
+  formContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 20,
   },
-  inputGroup: {
-    marginBottom: 18,
+  inputContainer: {
+    marginBottom: 20,
   },
   label: {
-    fontFamily: 'outfit-medium',
-    fontSize: 16,
-    color: Colors.light.text,
-    marginBottom: 6,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.gray[800],
+    marginBottom: 8,
   },
   input: {
-    fontFamily: 'outfit',
-    fontSize: 15,
-    padding: 14,
-    borderWidth: 1,
-    borderRadius: 12,
-    borderColor: Colors.Gray,
-    backgroundColor: '#FAFAFA',
-    color: Colors.light.text,
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: Colors.Gray,
-    borderRadius: 12,
-    backgroundColor: '#FAFAFA',
-  },
-  picker: {
     height: 50,
-    width: '100%',
-    color: Colors.light.text,
-  },
-  pickerItem: {
-    fontFamily: 'outfit',
-    fontSize: 15,
-  },
-  submitButton: {
-    backgroundColor: Colors.Primary,
+    borderWidth: 1,
+    borderColor: Colors.gray[300],
     borderRadius: 12,
-    paddingVertical: 15,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: Colors.black,
+  },
+  roleButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  roleButton: {
+    flex: 1,
+    paddingVertical: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: Colors.gray[300],
+    borderRadius: 12,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 25,
-    shadowColor: Colors.Primary,
-    shadowOffset: { width: 0, height: 4 },
+    marginHorizontal: 5,
+  },
+  roleButtonText: {
+    fontSize: 16,
+    color: Colors.black,
+    width: '60%',
+  },
+  selectedRole: {
+    backgroundColor: Colors.primary,
+    color: Colors.white,
+    borderColor: Colors.primary,
+  },
+  signUpButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '60%',
+    marginVertical: 20,
+    elevation: 5, // Shadow for Android
+    shadowColor: Colors.black, // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowRadius: 3.5,
   },
-  submitButtonDisabled: {
-    backgroundColor: Colors.Gray,
+  signUpButtonDisabled: {
+    opacity: 0.7,
+    justifyContent: 'center',
+
   },
-  submitButtonText: {
-    fontFamily: 'outfit-medium',
+  signUpButtonText: {
     color: Colors.white,
     fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  signInContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 'auto',
+    marginBottom: 24,
+  },
+  signInText: {
+    color: Colors.gray[600],
+    fontSize: 14,
   },
   signInLink: {
-    marginTop: 20,
-    alignSelf: 'center',
-  },
-  signInLinkText: {
-    fontFamily: 'outfit',
-    fontSize: 15,
-    color: Colors.Primary,
-    textDecorationLine: 'underline',
-  },
-  errorText: {
-    fontFamily: 'outfit',
-    color: 'red',
+    color: Colors.primary,
     fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 15,
+    fontWeight: '600',
+  },
+  backButton: {
+    paddingLeft: 16,
   },
 });

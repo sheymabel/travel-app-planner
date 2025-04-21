@@ -1,55 +1,44 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
-
 export const Colors = {
+  primary: '#4f46e5',
+  primaryLight: '#818cf8',
+  primaryDark: '#4338ca',
+  secondary: '#10b981',
+  secondaryLight: '#34d399',
+  secondaryDark: '#059669',
+  success: '#16a34a',
+  warning: '#f59e0b',
+  error: '#dc2626',
+  errorLight: '#fecaca',
+  info: '#3b82f6',
+  white: '#ffffff',
+  black: '#000000',
+  bgColor: '#ffffff',
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: '#000000',
+    background: '#ffffff',
+    tint: '#4f46e5',
+    icon: '#4f46e5',
+    tabIconDefault: '#6b7280',
+    tabIconSelected: '#4f46e5',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: '#ffffff',
+    background: '#000000',
+    tint: '#818cf8',
+    icon: '#818cf8',
+    tabIconDefault: '#9ca3af',
+    tabIconSelected: '#818cf8',
   },
-  Gray: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+  gray: {
+    50: '#f9fafb',
+    100: '#f3f4f6',
+    200: '#e5e7eb',
+    300: '#d1d5db',
+    400: '#9ca3af',
+    500: '#6b7280',
+    600: '#4b5563',
+    700: '#374151',
+    800: '#1f2937',
+    900: '#111827',
   },
-  Primary: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
-
-
-  white :{
-   
-      text: '#ECEDEE',
-      background: '#151718',
-      tint: tintColorDark,
-      icon: '#9BA1A6',
-      tabIconDefault: '#9BA1A6',
-      tabIconSelected: tintColorDark,
-    },
-  
-  }
+};

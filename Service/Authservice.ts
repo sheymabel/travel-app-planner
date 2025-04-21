@@ -6,10 +6,16 @@ import {
   signOut,
   UserCredential,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { AuthUser } from '../models/AuthUser';
-import { BusinessOwner } from '../models/BusinessOwner';
 
+interface AuthUser {
+  uid: string;
+  fullName: string;
+  email: string;
+  role: 'Traveler' | 'Business Owner';
+  createdAt: Date;
+}
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { BusinessOwner } from './../models/BusinnessOwner';
 export class AuthService {
   static async signUp(
     fullName: string,

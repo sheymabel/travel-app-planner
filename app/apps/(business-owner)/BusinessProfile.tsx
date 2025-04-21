@@ -1,0 +1,620 @@
+// app/auth/BusinessOwner/BusinessProfile.tsx
+import { useState, useEffect, useCallback } from 'react';
+import {
+  View, Text, TextInput, StyleSheet, TouchableOpacity,
+  ScrollView, ActivityIndicator, Alert, Platform, RefreshControl, KeyboardAvoidingView,
+  Animated, Easing
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { db } from '../../../configs/FirebaseConfig'; // Import the db instance
+import { collection, doc, getDoc, updateDoc, getDocs, query, orderBy, Timestamp } from 'firebase/firestore';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../../../constants/Colors';
+
+// Data structure for profile (similar to registration, but might evolve)
+interface BusinessProfileData {
+  id?: string; // Document ID from Firestore
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  description: string;
+  categories: string[];
+  createdAt?: Timestamp; // Keep track of creation time
+  updatedAt?: Timestamp; // Track updates
+}
+
+// Category structure
+interface Category {
+  id: string;
+  name: string;
+}
+
+// Placeholder: Assume we know the business ID (e.g., from auth state or previous navigation)
+// In a real app, you'd get this dynamically.
+const MOCK_BUSINESS_ID = "YOUR_BUSINESS_DOCUMENT_ID"; // <-- REPLACE THIS
+
+export default function BusinessProfileScreen() {
+  const [profile, setProfile] = useState<BusinessProfileData | null>(null);
+  const [initialProfile, setInitialProfile] = useState<BusinessProfileData | null>(null); // To check for changes
+  const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false); // For pull-to-refresh
+  const fadeAnim = new Animated.Value(0);
+  const slideAnim = new Animated.Value(50);
+  const scaleAnim = new Animated.Value(0.95);
+
+  // Fetch Categories
+  const fetchCategories = useCallback(async () => {
+    try {
+      const categoriesCol = collection(db, 'categories');
+      const q = query(categoriesCol, orderBy('name'));
+      const categorySnapshot = await getDocs(q);
+      const categoriesList = categorySnapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().name as string,
+      }));
+      setAvailableCategories(categoriesList);
+    } catch (err) {
+      console.error("Error fetching categories: ", err);
+      // Don't overwrite main error if profile fetch also failed
+      if (!error) setError("Failed to load categories.");
+    }
+  }, [error]); // Depend on error state to avoid overwriting
+
+  // Fetch Business Profile
+  const fetchBusinessProfile = useCallback(async () => {
+    if (!MOCK_BUSINESS_ID || MOCK_BUSINESS_ID === "YOUR_BUSINESS_DOCUMENT_ID") {
+        setError("Business ID not configured. Cannot load profile.");
+        setLoading(false);
+        setRefreshing(false);
+        return;
+    }
+    setLoading(true);
+    setError(null); // Clear previous errors
+    try {
+      const businessDocRef = doc(db, 'businesses', MOCK_BUSINESS_ID);
+      const docSnap = await getDoc(businessDocRef);
+
+      if (docSnap.exists()) {
+        const data = { id: docSnap.id, ...docSnap.data() } as BusinessProfileData;
+        setProfile(data);
+        setInitialProfile(data); // Store initial state
+      } else {
+        setError("Business profile not found.");
+        setProfile(null);
+        setInitialProfile(null);
+      }
+    } catch (err) {
+      console.error("Error fetching business profile: ", err);
+      setError("Failed to load profile. Please check your connection.");
+      setProfile(null);
+      setInitialProfile(null);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []); // No dependencies needed here for the core fetch logic
+
+  // Initial data load
+  useEffect(() => {
+    fetchBusinessProfile();
+    fetchCategories();
+  }, [fetchBusinessProfile, fetchCategories]); // Run on mount
+
+  useEffect(() => {
+    // Animation sequence
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  // Pull-to-refresh handler
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Re-fetch both profile and categories
+    Promise.all([fetchBusinessProfile(), fetchCategories()]).finally(() => {
+        setRefreshing(false);
+    });
+  }, [fetchBusinessProfile, fetchCategories]);
+
+
+  const handleInputChange = (field: keyof Omit<BusinessProfileData, 'categories' | 'id' | 'createdAt' | 'updatedAt'>, value: string) => {
+    setProfile(prev => (prev ? { ...prev, [field]: value } : null));
+     if (error && error !== "Please select at least one category.") {
+        setError(null);
+    }
+  };
+
+  const handleCategoryToggle = (categoryName: string) => {
+    setProfile(prevProfile => {
+      if (!prevProfile) return null;
+      const currentCategories = prevProfile.categories || [];
+      const updatedCategories = currentCategories.includes(categoryName)
+        ? currentCategories.filter(c => c !== categoryName)
+        : [...currentCategories, categoryName];
+      return { ...prevProfile, categories: updatedCategories };
+    });
+     if (error === "Please select at least one category.") {
+        setError(null);
+    }
+  };
+
+   const validateForm = (): boolean => {
+      if (!profile) return false;
+      const { name, address, phone, email, description, categories } = profile;
+
+      if (!name?.trim() || !address?.trim() || !phone?.trim() || !email?.trim() || !description?.trim()) {
+          setError("All fields are required.");
+          return false;
+      }
+       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+          setError("Please enter a valid email address.");
+          return false;
+      }
+       const phoneRegex = /^[0-9\s\-()+.]{7,}$/;
+       if (!phoneRegex.test(phone)) {
+          setError("Please enter a valid phone number.");
+          return false;
+      }
+      if (!categories || categories.length === 0) {
+          setError("Please select at least one category.");
+          return false;
+      }
+      setError(null);
+      return true;
+  }
+
+  // Check if form data has changed
+  const hasChanges = () => {
+      if (!profile || !initialProfile) return false;
+      return JSON.stringify(profile) !== JSON.stringify(initialProfile);
+  };
+
+  const handleSave = async () => {
+    if (!profile || !profile.id || !validateForm() || !hasChanges()) {
+        if (profile && initialProfile && !hasChanges()) {
+             Alert.alert("No Changes", "You haven't made any changes to save.");
+        }
+        return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const businessDocRef = doc(db, 'businesses', profile.id);
+      const dataToUpdate: Partial<BusinessProfileData> = {
+          ...profile,
+          updatedAt: Timestamp.now(), // Add/update the timestamp
+      };
+      // Remove id from the data being sent to Firestore
+      delete dataToUpdate.id;
+      delete dataToUpdate.createdAt; // Don't overwrite creation time
+
+      await updateDoc(businessDocRef, dataToUpdate);
+
+      // Update initial state after successful save
+      setInitialProfile(profile);
+
+      Alert.alert("Success", "Profile updated successfully.");
+
+    } catch (err) {
+      console.error("Error updating profile: ", err);
+      setError("Failed to update profile. Please try again.");
+      Alert.alert("Error", "Could not save changes. Please check your connection and try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const renderCategoryItem = (category: Category) => {
+    const isSelected = profile?.categories?.includes(category.name) || false;
+    return (
+      <Animated.View
+        key={category.id}
+        style={[
+          styles.categoryItem,
+          {
+            opacity: fadeAnim,
+            transform: [
+              { translateY: slideAnim },
+              { scale: scaleAnim },
+            ],
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={[
+            styles.categoryButton,
+            isSelected && styles.categoryButtonSelected,
+          ]}
+          onPress={() => handleCategoryToggle(category.name)}
+        >
+          <Text
+            style={[
+              styles.categoryText,
+              isSelected && styles.categoryTextSelected,
+            ]}
+          >
+            {category.name}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
+  // --- Render Logic ---
+  if (loading && !refreshing) { // Show full screen loader only on initial load
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loadingText}>Loading Profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error && !profile && !loading) { // Show error only if profile couldn't be loaded at all
+    return (
+      <SafeAreaView style={styles.safeArea}>
+         <ScrollView
+            contentContainerStyle={styles.container}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#4f46e5"]} tintColor={"#4f46e5"}/>}
+         >
+            <Text style={styles.title}>Business Profile</Text>
+            <View style={styles.errorContainer}>
+                <Ionicons name="alert-circle-outline" size={50} color="#dc2626" />
+                <Text style={styles.errorTextLarge}>{error}</Text>
+                <TouchableOpacity onPress={onRefresh} style={styles.retryButton}>
+                    <Text style={styles.retryButtonText}>Try Again</Text>
+                </TouchableOpacity>
+            </View>
+         </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+   if (!profile && !loading) { // Handle case where profile is null but no specific error (e.g., not found)
+      return (
+          <SafeAreaView style={styles.safeArea}>
+              <ScrollView
+                contentContainerStyle={styles.container}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#4f46e5"]} tintColor={"#4f46e5"}/>}
+              >
+                <Text style={styles.title}>Business Profile</Text>
+                <View style={styles.errorContainer}>
+                    <Ionicons name="information-circle-outline" size={50} color="#64748b" />
+                    <Text style={styles.errorTextLarge}>Business profile data is unavailable.</Text>
+                     <TouchableOpacity onPress={onRefresh} style={styles.retryButton}>
+                        <Text style={styles.retryButtonText}>Refresh</Text>
+                    </TouchableOpacity>
+                </View>
+              </ScrollView>
+          </SafeAreaView>
+      );
+  }
+
+  // --- Main Form Render ---
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['bottom', 'left', 'right']}>
+       <KeyboardAvoidingView
+         behavior={Platform.OS === "ios" ? "padding" : "height"}
+         style={{ flex: 1 }}
+         keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+       >
+        <ScrollView
+            contentContainerStyle={styles.container}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={[Colors.primary]}
+                    tintColor={Colors.primary}
+                />
+            }
+            keyboardShouldPersistTaps="handled"
+        >
+            <Animated.View
+              style={[
+                styles.content,
+                {
+                  opacity: fadeAnim,
+                  transform: [
+                    { translateY: slideAnim },
+                    { scale: scaleAnim },
+                  ],
+                },
+              ]}
+            >
+                <Text style={styles.title}>Business Profile</Text>
+
+                {/* Display non-blocking errors (like category fetch failure) */}
+                {error && <Text style={[styles.errorTextSmall, { marginBottom: 15 }]}>{error}</Text>}
+
+                {/* --- Form Fields --- */}
+                <View style={styles.inputGroup}>
+                <Text style={styles.label}>Business Name</Text>
+                <TextInput
+                    style={[styles.input, focusedField === 'name' && styles.inputFocused]}
+                    value={profile?.name || ''}
+                    onChangeText={(text) => handleInputChange('name', text)}
+                    placeholder="Enter business name"
+                    placeholderTextColor="#9ca3af"
+                    onFocus={() => setFocusedField('name')}
+                    onBlur={() => setFocusedField(null)}
+                />
+                </View>
+
+                <View style={styles.inputGroup}>
+                <Text style={styles.label}>Address</Text>
+                <TextInput
+                    style={[styles.input, styles.textArea, focusedField === 'address' && styles.inputFocused]}
+                    value={profile?.address || ''}
+                    onChangeText={(text) => handleInputChange('address', text)}
+                    placeholder="Enter business address"
+                    placeholderTextColor="#9ca3af"
+                    multiline
+                    onFocus={() => setFocusedField('address')}
+                    onBlur={() => setFocusedField(null)}
+                />
+                </View>
+
+                <View style={styles.inputGroup}>
+                <Text style={styles.label}>Phone Number</Text>
+                <TextInput
+                    style={[styles.input, focusedField === 'phone' && styles.inputFocused]}
+                    value={profile?.phone || ''}
+                    onChangeText={(text) => handleInputChange('phone', text)}
+                    placeholder="Enter phone number"
+                    placeholderTextColor="#9ca3af"
+                    keyboardType="phone-pad"
+                    textContentType="telephoneNumber"
+                    onFocus={() => setFocusedField('phone')}
+                    onBlur={() => setFocusedField(null)}
+                />
+                </View>
+
+                <View style={styles.inputGroup}>
+                <Text style={styles.label}>Contact Email</Text>
+                <TextInput
+                    style={[styles.input, focusedField === 'email' && styles.inputFocused]}
+                    value={profile?.email || ''}
+                    onChangeText={(text) => handleInputChange('email', text)}
+                    placeholder="Enter contact email"
+                    placeholderTextColor="#9ca3af"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    textContentType="emailAddress"
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField(null)}
+                />
+                </View>
+
+                <View style={styles.inputGroup}>
+                <Text style={styles.label}>Description</Text>
+                <TextInput
+                    style={[styles.input, styles.textArea, focusedField === 'description' && styles.inputFocused]}
+                    value={profile?.description || ''}
+                    onChangeText={(text) => handleInputChange('description', text)}
+                    placeholder="Describe your business"
+                    placeholderTextColor="#9ca3af"
+                    multiline
+                    onFocus={() => setFocusedField('description')}
+                    onBlur={() => setFocusedField(null)}
+                />
+                </View>
+
+                {/* --- Category Selector --- */}
+                <View style={styles.inputGroup}>
+                <Text style={styles.label}>Business Categories</Text>
+                <Text style={styles.labelHint}>Select all relevant categories</Text>
+                {availableCategories.length === 0 && !error ? (
+                     <Text style={styles.infoText}>No categories available.</Text>
+                ) : (
+                    <View style={styles.categoryContainer}>
+                        {availableCategories.map(renderCategoryItem)}
+                    </View>
+                )}
+                </View>
+                {/* --- End Category Selector --- */}
+
+                <TouchableOpacity
+                    style={[styles.saveButton, (saving || !hasChanges()) && styles.saveButtonDisabled]}
+                    onPress={handleSave}
+                    disabled={saving || !hasChanges()} // Disable if saving or no changes made
+                    activeOpacity={0.8}
+                >
+                {saving ? (
+                    <ActivityIndicator size="small" color={Colors.white} />
+                ) : (
+                    <Text style={styles.saveButtonText}>Save Changes</Text>
+                )}
+                </TouchableOpacity>
+            </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+// --- Styles (Similar to Register, but adjusted slightly for Profile context) ---
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.bgColor,
+  },
+   loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.bgColor,
+  },
+  loadingText: {
+      marginTop: 10,
+      fontSize: 16,
+      color: Colors.gray[600],
+  },
+   errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    minHeight: 300, // Ensure container takes some space
+  },
+  errorTextLarge: {
+    fontSize: 16,
+    color: Colors.error,
+    textAlign: 'center',
+    marginTop: 15,
+    marginBottom: 20,
+    fontWeight: '500',
+  },
+  retryButton: {
+      backgroundColor: Colors.primary,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      boxShadow: '0 1px 3px rgba(79, 70, 229, 0.2)',
+      elevation: 2,
+  },
+  retryButtonText: {
+      color: Colors.white,
+      fontSize: 15,
+      fontWeight: 'bold',
+  },
+  container: {
+    flexGrow: 1,
+    padding: 24,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: Colors.black,
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600', // Semibold
+    color: Colors.gray[800], // Medium Slate
+    marginBottom: 8,
+  },
+  labelHint: {
+      fontSize: 13,
+      color: Colors.gray[600], // Soft Slate
+      marginBottom: 12,
+  },
+  input: {
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.gray[200], // Light Gray border
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: Colors.black, // Dark input text
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    elevation: 1,
+  },
+  inputFocused: {
+      borderColor: Colors.primary, // Indigo border on focus
+      borderWidth: 1.5,
+      boxShadow: '0 0 0 1px rgba(79, 70, 229, 0.2)',
+  },
+  textArea: {
+    minHeight: 110,
+    textAlignVertical: 'top',
+    paddingTop: 12,
+  },
+  // Category Styles
+  categoryContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  categoryItem: {
+    marginBottom: 10,
+  },
+  categoryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[200],
+  },
+  categoryButtonSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  categoryText: {
+    fontSize: 14,
+    color: Colors.gray[700],
+  },
+  categoryTextSelected: {
+    color: Colors.white,
+    fontWeight: '600',
+  },
+  // End Category Styles
+  saveButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 24,
+    boxShadow: '0 2px 4px rgba(79, 70, 229, 0.3)',
+    elevation: 5,
+  },
+  saveButtonDisabled: {
+    backgroundColor: Colors.primary,
+    opacity: 0.7,
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+    elevation: 1,
+  },
+  saveButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  errorTextSmall: { // For non-blocking errors shown above form
+    color: Colors.error,
+    textAlign: 'center',
+    fontSize: 14,
+    marginBottom: 15,
+    fontWeight: '500',
+  },
+   infoText: {
+      color: Colors.gray[600], // Soft Slate
+      textAlign: 'center',
+      fontSize: 14,
+      marginTop: 10,
+  },
+  content: {
+    flex: 1,
+  },
+});

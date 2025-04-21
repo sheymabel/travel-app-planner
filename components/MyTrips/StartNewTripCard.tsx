@@ -41,7 +41,7 @@ export default function StartNewTripCard() {
                     fontFamily: 'outfit-medium',
                     fontSize: 15,
                     textAlign: 'center',
-                    color: Colors.Gray,
+                    color: Colors.gray[500],
                 }}
             >
                 Looks like it's time to plan a new travel experience! Get Started below
@@ -52,14 +52,14 @@ export default function StartNewTripCard() {
                 style={{
                     padding: 15,
                     marginTop: 20,
-                    backgroundColor: Colors.Primary,
+                    backgroundColor: Colors.primary,
                     borderRadius: 15,
                     paddingHorizontal: 30,
                 }}
             >
                 <Text
                     style={{
-                        color: Colors.light,
+                        color: '#000000',
                         fontFamily: 'outfit',
                         textAlign: 'center',
                     }}

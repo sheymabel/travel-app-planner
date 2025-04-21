@@ -1,345 +1,317 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
+  StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRouter } from 'expo-router';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Toast from 'react-native-toast-message';
 import { Picker } from '@react-native-picker/picker';
-import { Colors } from '../../constants/Colors';
-import { auth, db } from '../../configs/FirebaseConfig'; // Correct firebase imports
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from './../../constants/Colors';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { db, auth } from './../../configs/FirebaseConfig';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { useRouter } from 'expo-router';
+import Toast from 'react-native-toast-message';
 
-// Validation helpers
-const isValidEmail = (email: string) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-const isValidPassword = (password: string) =>
-  /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/.test(password); // Minimum 6 chars, letters + numbers
+type CategoryType =
+  | 'restaurant'
+  | 'retail'
+  | 'services'
+  | 'health_beauty'
+  | 'entertainment'
+  | 'other';
 
 export default function BusinessRegisterScreen() {
   const router = useRouter();
-  const navigation = useNavigation();
 
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [password, setPassword] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [category, setCategory] = useState<CategoryType>('other');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
 
-  const categories = [
-    { label: 'Select a Category...', value: '' },
-    { label: 'Restaurant', value: 'restaurant' },
-    { label: 'Retail', value: 'retail' },
-    { label: 'Services', value: 'services' },
-    { label: 'Health & Beauty', value: 'health_beauty' },
-    { label: 'Entertainment', value: 'entertainment' },
-    { label: 'Other', value: 'other' },
-  ];
-
-  useEffect(() => {
-    setSelectedCategory(categories[0].value);
-    navigation.setOptions?.({ headerShown: false });
-  }, []);
-
-  const handleSignUp = async () => {
-    if (!email || !password || !name || !address || !phone || !description || !selectedCategory) {
-      Toast.show({ type: 'error', text1: 'Please fill out all fields' });
-      return;
-    }
-
-    if (!isValidEmail(email)) {
-      Toast.show({ type: 'error', text1: 'Invalid email address' });
-      return;
-    }
-
-    if (!isValidPassword(password)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Weak password',
-        text2: 'Must be 6+ characters and include numbers.',
-      });
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      await setDoc(doc(db, 'Business Owner', user.uid), {
-        name,
-        email,
-        phone,
-        address,
-        description,
-        password,
-         role: 'Business-Owner',
-        category: selectedCategory,
-        userId: user.uid,
-        createdAt: new Date().toISOString(),
-      });
-
-      Toast.show({
-        type: 'success',
-        text1: 'Business Registered!',
-        text2: 'Your business account has been created successfully.',
-      });
-      router.replace('../auth/sign-in');
-      
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Unexpected error');
-      Toast.show({ type: 'error', text1: 'Signup failed', text2: err.message });
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const isFormValid =
+    fullName && email && phone && address && password && description && category;
+    function showToast(message: string, type: string = 'success') {
+       Toast.show({
+            type,
+            position: 'top',
+            text1: message,
+            visibilityTime: 3000,
+          });
+        };
+    const handleRegister = async () => {
+      if (!isFormValid) {
+        showToast('Please fill in all fields.', 'error');
+        return;
+      }
+    
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^[0-9]{8,14}$/;
+    
+      if (!emailRegex.test(email)) {
+        showToast('Please enter a valid email address.', 'error');
+        return;
+      }
+    
+      if (!phoneRegex.test(phone)) {
+        showToast('Please enter a valid phone number.', 'error');
+        return;
+      }
+    
+      try {
+        setLoading(true);
+        setError('');
+    
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+    
+        await addDoc(collection(db, 'businesses'), {
+          uid,
+          fullName,
+          email,
+          password,
+          phone,
+          address,
+          description,
+          category,
+          role:'business',
+          createdAt: Timestamp.now(),
+        });
+    
+        showToast('Business registered successfully!');
+    
+        setLoading(false);
+        router.replace('/auth/sign-in');
+      } catch (err: any) {
+        console.error('Firebase error:', err);
+        setLoading(false);
+        showToast('Registration failed. Please try again.', 'error');
+      }
+    };
+    
+    
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-        <TouchableOpacity onPress={() => router.replace('/auth/sign-up')} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.inner}>
+        <TouchableOpacity
+          onPress={() => router.replace('/auth/sign-up')}
+          style={{ marginTop: -40, padding: 8, borderRadius: 10 }}
+        >
+          <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
 
         <Text style={styles.title}>Register Your Business</Text>
-        <Text style={styles.subtitle}>Provide your business details below.</Text>
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        <Text style={styles.subtitle}>Provide some details about your business</Text>
 
-        {/* Input Fields */}
+        {error !== '' && <Text style={styles.errorText}>{error}</Text>}
+
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Name</Text>
+          <Text style={styles.label}>Full Name</Text>
           <TextInput
-            style={styles.input}
-            placeholder="Enter Your Name"
-            value={name}
-            onChangeText={setName}
-            placeholderTextColor={Colors.Gray}
+            style={[styles.input, error.includes('name') && { borderColor: 'red' }]}
+            value={fullName}
+            onChangeText={setFullName}
+            autoCapitalize="words"
           />
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Email</Text>
           <TextInput
-            style={styles.input}
-            placeholder="Enter your email"
+            style={[styles.input, error.includes('email') && { borderColor: 'red' }]}
             value={email}
             onChangeText={setEmail}
-            autoCapitalize="none"
             keyboardType="email-address"
-            placeholderTextColor={Colors.Gray}
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            secureTextEntry
-            style={styles.input}
-            placeholder="Create a password"
-            value={password}
-            onChangeText={setPassword}
-            placeholderTextColor={Colors.Gray}
+            autoCapitalize="none"
           />
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Phone</Text>
           <TextInput
-            style={styles.input}
-            placeholder="Enter phone number"
+            style={[styles.input, error.includes('phone') && { borderColor: 'red' }]}
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
-            placeholderTextColor={Colors.Gray}
           />
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Business Address</Text>
+          <Text style={styles.label}>Address</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your business address"
             value={address}
             onChangeText={setAddress}
-            placeholderTextColor={Colors.Gray}
+            autoCapitalize="words"
           />
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Business Category</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedCategory}
-              onValueChange={(itemValue) => setSelectedCategory(itemValue)}
-              style={styles.picker}
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          {password.length > 0 && (
+            <Text
+              style={{
+                color: password.length < 6 ? 'red' : 'primary',
+                fontSize: 12,
+                marginTop: 5,
+              }}
             >
-              {categories.map((category) => (
-                <Picker.Item
-                  key={category.value}
-                  label={category.label}
-                  value={category.value}
-                  style={styles.pickerItem}
-                />
-              ))}
-            </Picker>
-          </View>
+              {password.length < 6
+                ? 'Password too short (min 6 characters)'
+                : 'Password strength looks good'}
+            </Text>
+          )}
         </View>
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Description</Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Tell us about your business"
+            style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
             value={description}
             onChangeText={setDescription}
             multiline
-            numberOfLines={4}
-            placeholderTextColor={Colors.Gray}
           />
         </View>
 
-        {/* Submit Button */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Category</Text>
+          <View style={[styles.input, { padding: 0 }]}>
+            <Picker selectedValue={category} onValueChange={(value) => setCategory(value)}>
+              <Picker.Item label="Restaurant" value="restaurant" />
+              <Picker.Item label="Retail" value="retail" />
+              <Picker.Item label="Services" value="services" />
+              <Picker.Item label="Health & Beauty" value="health_beauty" />
+              <Picker.Item label="Entertainment" value="entertainment" />
+              <Picker.Item label="Other" value="other" />
+            </Picker>
+          </View>
+        </View>
+
         <TouchableOpacity
-          onPress={handleSignUp}
-          style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator size="small" color={Colors.white} />
-          ) : (
-            <Text style={styles.submitButtonText}>Register Business</Text>
-          )}
-        </TouchableOpacity>
+  style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]}
+  onPress={handleRegister}
+  disabled={!isFormValid || loading}
+>
+  {loading ? (
+    <ActivityIndicator color="#fff" />
+  ) : (
+    <Text style={styles.buttonText}>Register</Text>
+  )}
+</TouchableOpacity>
 
-        {/* Link to Sign In */}
-        <TouchableOpacity onPress={() => router.replace('/auth/sign-in')} style={styles.signInLink}>
-          <Text style={styles.signInLinkText}>Already have an account? Sign In</Text>
-        </TouchableOpacity>
+
+{/* 🔙 Link to Sign In */}
+<TouchableOpacity onPress={() => router.replace('/auth/sign-in')}>
+  <Text style={styles.signInLink}>
+    Already have an account? <Text style={styles.linkText}>Sign In</Text>
+  </Text>
+</TouchableOpacity>
+<Toast/>
       </ScrollView>
-
-      <Toast />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  signInLink: {
+    marginTop: 16,
+    textAlign: 'center',
+    fontSize: 14,
+    fontFamily: 'outfit',
+    color: '#555',
+  },
+  linkText: {
+    color: '#3b82f6',
+    fontFamily: 'outfit-medium',
+  },
+  
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
+    paddingHorizontal: 20,
+    backgroundColor: '#fff',
   },
-  scrollContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 30,
-  },
-  backButton: {
-    marginBottom: 10,
-    alignSelf: 'flex-start',
+  inner: {
+    marginTop: 20,
+    paddingBottom: 50,
+    paddingTop: 60,
   },
   title: {
-    fontFamily: 'outfit-bold',
-    fontSize: 28,
-    color: Colors.light.text,
+    marginTop: 20,
+    fontFamily: 'outfit-medium',
+    fontSize: 22,
+    color: Colors.primary,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontFamily: 'outfit',
-    fontSize: 15,
-    color: Colors.Gray,
-    marginBottom: 25,
-  },
-  errorText: {
-    color: 'red',
-    fontFamily: 'outfit',
+    fontSize: 16,
+    color: Colors.gray[600],
     textAlign: 'center',
-    marginBottom: 15,
-    fontSize: 14,
+    marginBottom: 20,
   },
   inputGroup: {
-    marginBottom: 18,
+    marginBottom: 15,
   },
   label: {
     fontFamily: 'outfit-medium',
     fontSize: 16,
-    color: Colors.light.text,
-    marginBottom: 6,
+    marginBottom: 8,
+    color: Colors.gray[800],
   },
   input: {
     fontFamily: 'outfit',
     fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 15,
     borderWidth: 1,
-    borderColor: Colors.Gray,
+    borderColor: Colors.gray[400],
+    padding: 15,
     borderRadius: 10,
-    backgroundColor: Colors.white,
-    color: Colors.dark,
+    color: Colors.gray[800],
   },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: Colors.Gray,
-    borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: Colors.white,
-  },
-  picker: {
-    height: 55,
-    width: '100%',
-    color: Colors.Gray,
-  },
-  pickerItem: {
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
     fontFamily: 'outfit',
-    fontSize: 16,
+    textAlign: 'center',
   },
-  submitButton: {
-    backgroundColor: Colors.Primary,
-    borderRadius: 12,
+  button: {
+    backgroundColor: Colors.primary,
+    borderRadius: 15,
     paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 30,
-    width: '60%',
-    alignSelf: 'center',
-    elevation: 2, // for subtle shadow on Android
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  submitButtonDisabled: {
-    backgroundColor: Colors.Gray,
-  },
-  submitButtonText: {
-    fontFamily: 'outfit',
-    fontSize: 16,
-    color: Colors.white,
-  },
-  signInLink: {
+    paddingHorizontal: 30,
     marginTop: 20,
     alignSelf: 'center',
+    width: '60%',
+    alignItems: 'center',
   },
-  signInLinkText: {
-    color: Colors.Primary,
+  buttonDisabled: {
+    backgroundColor: Colors.gray[300],
+  },
+  buttonText: {
+    color: Colors.white,
     fontFamily: 'outfit-medium',
-    fontSize: 15,
-    textDecorationLine: 'underline',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
+
+
+

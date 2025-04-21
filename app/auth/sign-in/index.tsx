@@ -1,247 +1,374 @@
-import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
+  StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  ViewStyle,
+  Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { getDoc, doc } from 'firebase/firestore';
-import Toast from 'react-native-toast-message';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { auth, db } from '../../../configs/FirebaseConfig';
+import React, { useState, useEffect } from 'react';
+import { useNavigation, useRouter } from 'expo-router';
 import { Colors } from '../../../constants/Colors';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '../../../configs/FirebaseConfig';
+import Toast from 'react-native-toast-message';
+import { doc, getDoc } from 'firebase/firestore';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  interpolate,
+} from 'react-native-reanimated';
 
-export default function SignInScreen() {
+export default function SignIn() {
+  const navigation = useNavigation();
   const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const fetchUserRole = async (uid: string): Promise<string | null> => {
-    try {
-      const userDoc = await getDoc(doc(db, 'AuthUser', uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        return (userData?.role ?? null)?.toString().trim(); // normalize
-      }
-    } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to fetch user role',
-      });
+  const headerOpacity = useSharedValue(0);
+  const headerTranslateY = useSharedValue(-20);
+  const formOpacity = useSharedValue(0);
+  const formTranslateY = useSharedValue(30);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerTransparent: true,
+      headerTitle: '',
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.black} />
+        </TouchableOpacity>
+      ),
+    });
+
+    // Animate header
+    headerOpacity.value = withTiming(1, { duration: 500 });
+    headerTranslateY.value = withSpring(0, { damping: 10 });
+
+    // Animate form
+    formOpacity.value = withTiming(1, { duration: 500 });
+    formTranslateY.value = withSpring(0, { damping: 10 });
+  }, []);
+
+  const headerAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: headerOpacity.value,
+    transform: [{ translateY: headerTranslateY.value }],
+  }));
+
+  const formAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: formOpacity.value,
+    transform: [{ translateY: formTranslateY.value }],
+  }));
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    Toast.show({
+      type,
+      position: 'top',
+      text1: message,
+      visibilityTime: 3000,
+    });
+  };
+
+  const validateForm = (): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !password) {
+      showToast('Please enter both email and password', 'error');
+      return false;
     }
-    return null;
+    if (!emailRegex.test(email)) {
+      showToast('Please enter a valid email address', 'error');
+      return false;
+    }
+    if (password.length < 6) {
+      showToast('Password must be at least 6 characters', 'error');
+      return false;
+    }
+    return true;
   };
 
   const handleSignIn = async () => {
-    if (!email || !password) {
-      Toast.show({
-        type: 'error',
-        text1: 'Missing Info',
-        text2: 'Email and password required',
-      });
-      return;
-    }
+    if (!validateForm()) return;
 
-    setSubmitting(true);
-    setError(null);
-
+    setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      const role = await fetchUserRole(user.uid);
-      console.log('Fetched user role:', role);
+      const travelerDocRef = doc(db, 'Travler', user.uid);
+      const businessDocRef = doc(db, 'business', user.uid);
 
-      if (!role) {
-        throw new Error('Role not found in database.');
+      const [travelerDoc, businessDoc] = await Promise.all([
+        getDoc(travelerDocRef),
+        getDoc(businessDocRef),
+      ]);
+
+      let role: string | null = null;
+      if (travelerDoc.exists()) role = 'Traveler';
+      else if (businessDoc.exists()) role = 'business';
+      else {
+        showToast('User data not found', 'error');
+        setLoading(false);
+        return;
       }
 
-      switch (role.toLowerCase()) {
-        case 'business-owner':
-          router.replace('/BusinessOwner/HomeBusiness');
-          break;
-        case 'traveler':
-          router.replace('/(tabs)/mytrip');
-          break;
-        default:
-          throw new Error(`Unrecognized role: ${role}`);
-      }
-
-      Toast.show({
-        type: 'success',
-        text1: 'Welcome back!',
-      });
-
-    } catch (err: any) {
-      setError(err.message);
-      Toast.show({
-        type: 'error',
-        text1: 'Login failed',
-        text2: err.message,
-      });
+      showToast('Sign in successful');
+      if (role === 'business') router.replace('/apps/(business-owner)/HomeBusiness');
+      else router.replace('/apps/(traveler)/mytrip');
+    } catch (error: any) {
+      let msg = 'Something went wrong';
+      if (error.code === 'auth/user-not-found') msg = 'No user found with this email';
+      else if (error.code === 'auth/wrong-password') msg = 'Incorrect password';
+      else if (error.code === 'auth/invalid-email') msg = 'Invalid email address';
+      showToast(msg, 'error');
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.inner}
-      >
-        <TouchableOpacity onPress={() => router.replace('/')} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={Colors.light.text} />
-        </TouchableOpacity>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <Animated.View style={[styles.header, headerAnimatedStyle]}>
+        <Text style={styles.title}>Welcome Back!</Text>
+        <Text style={styles.subtitle}>Sign in to continue your journey</Text>
+      </Animated.View>
 
-        <Text style={styles.title}>Sign In</Text>
-        <Text style={styles.subtitle}>Access your account</Text>
-
-        {error && <Text style={styles.errorText}>{error}</Text>}
-
-        <View style={styles.inputGroup}>
+      <Animated.View style={[styles.formContainer, formAnimatedStyle]}>
+        <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
-          <TextInput
-            placeholder="you@example.com"
-            placeholderTextColor={Colors.Gray}
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
+          <View style={styles.inputWrapper}>
+            <Ionicons name="mail-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
         </View>
 
-        <View style={styles.inputGroup}>
+        <View style={styles.inputContainer}>
           <Text style={styles.label}>Password</Text>
-          <TextInput
-            placeholder="Enter your password"
-            placeholderTextColor={Colors.Gray}
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View style={styles.inputWrapper}>
+            <Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your password"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeIcon}
+            >
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={20}
+                color={Colors.gray[400]}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
+
+       
 
         <TouchableOpacity
-          style={[styles.button, submitting && styles.buttonDisabled]}
           onPress={handleSignIn}
-          disabled={submitting}
+          style={[styles.signInButton, loading && styles.signInButtonDisabled]}
+          disabled={loading}
         >
-          {submitting ? (
+          {loading ? (
             <ActivityIndicator color={Colors.white} />
           ) : (
-            <Text style={styles.buttonText}>Sign In</Text>
+            <Text style={styles.signInButtonText}>Sign In</Text>
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => router.replace('/auth/sign-up')}
-          style={styles.linkContainer}
-        >
-          <Text style={styles.linkText}>
-            Don’t have an account? <Text style={styles.link}>Register</Text>
-          </Text>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>OR</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <View style={styles.socialButtons}>
+          <TouchableOpacity style={styles.socialButton}>
+            <Ionicons name="logo-google" size={24} color={Colors.black} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.socialButton}>
+            <Ionicons name="logo-facebook" size={24} color={Colors.black} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.socialButton}>
+            <Ionicons name="logo-apple" size={24} color={Colors.black} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.signUpContainer}>
+          <Text style={styles.signUpText}>Don't have an account? </Text>
+          <TouchableOpacity onPress={() => router.push('/auth/sign-up')}>
+            <Text style={styles.signUpLink}>Sign Up</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
 
       <Toast />
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
-  } as ViewStyle,
   },
-  inner: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'center',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
+  header: {
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 30,
   },
   title: {
-    fontFamily: 'outfit-bold',
     fontSize: 28,
-    textAlign: 'center',
-    color: Colors.light.text,
+    fontWeight: 'bold',
+    color: Colors.black,
+    marginBottom: 10,
   },
   subtitle: {
-    fontFamily: 'outfit',
     fontSize: 16,
+    color: Colors.gray[600],
     textAlign: 'center',
-    color: Colors.Gray,
-    marginBottom: 30,
   },
-  inputGroup: {
-    marginBottom: 15,
+  formContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+  },
+  inputContainer: {
+    marginBottom: 20,
+    backgroundColor: Colors.white,
+
   },
   label: {
-    fontFamily: 'outfit-medium',
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.gray[800],
     marginBottom: 8,
-    color: Colors.light.text,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.gray[300],
+    borderRadius: 12,
+    paddingHorizontal: 16,
+        backgroundColor: Colors.white,
+
+  },
+  inputIcon: {
+    marginRight: 12,
   },
   input: {
-    fontFamily: 'outfit',
-    borderWidth: 1,
-    borderColor: Colors.Gray,
-    padding: 15,
-    borderRadius: 10,
+    flex: 1,
+    height: 50,
     fontSize: 16,
-    color: Colors.Gray,
   },
-  button: {
-    backgroundColor: Colors.Primary,
-    paddingVertical: 16,
-    borderRadius: 15,
-    marginTop: 25,
+  eyeIcon: {
+    padding: 8,
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginBottom: 24,
+  },
+  forgotPasswordText: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  signInButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    height: 50,
+    justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 24,
   },
-  buttonDisabled: {
-    backgroundColor: Colors.Gray,
+  signInButtonDisabled: {
+    opacity: 0.7,
   },
-  buttonText: {
-    fontFamily: 'outfit',
-    fontSize: 16,
+  signInButtonText: {
     color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
-  linkContainer: {
-    marginTop: 20,
+  divider: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 24,
   },
-  linkText: {
-    fontFamily: 'outfit',
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.gray[300],
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    color: Colors.gray[500],
     fontSize: 14,
-    color: Colors.Gray,
   },
-  link: {
-    color: Colors.Primary,
-    textDecorationLine: 'underline',
+  socialButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 24,
   },
-  errorText: {
-    color: 'red',
-    fontFamily: 'outfit',
-    textAlign: 'center',
-    marginBottom: 15,
+  socialButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: Colors.gray[100],
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 8,
+    
+  },
+  signUpContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 'auto',
+    marginBottom: 24,
+  },
+  signUpText: {
+    color: Colors.gray[600],
     fontSize: 14,
+  },
+  signUpLink: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+    justifyContent: 'center',
+alignItems: 'center',
+
+  },
+  backButton: {
+    marginLeft: 16,
+    padding: 8,
+    borderRadius: 8,
+    width: '60%',
+
   },
 });
