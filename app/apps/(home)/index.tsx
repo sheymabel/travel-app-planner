@@ -1,5 +1,3 @@
-// app/(home)/index.tsx
-
 import CategoryButtons from '../../../components/Home/CategoryButtons'
 import GroupListings from '../../../components/Home/GroupListings'
 import Listings from '../../../components/Home/Listings'

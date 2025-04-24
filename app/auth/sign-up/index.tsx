@@ -89,46 +89,65 @@ export default function SignUp() {
       showToast('Please enter all details', 'error');
       return;
     }
-
+  
     if (!emailRegex.test(email)) {
       showToast('Please enter a valid email', 'error');
       return;
     }
-
+  
     if (!passwordRegex.test(password)) {
       showToast('Password must be at least 6 characters with letters and numbers', 'error');
       return;
     }
-
-    setLoading(true);
+  
     try {
+      setLoading(true);
+  
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, {
-        fullName,
-        email,
-        role: selectedRole,
-        createdAt: new Date(),
-      });
-
-      showToast('Account created successfully');
+  
+      let userDoc;
+      let redirectPath;
+  
       if (selectedRole === 'Traveler') {
-        router.replace('/apps/(traveler)/mytrip');
+        userDoc = {
+          uid: user.uid,
+          fullName,
+          email,
+          password,
+          role: 'Traveler',
+          createdAt: new Date(),
+        };
       } else if (selectedRole === 'Business') {
-        router.replace('/apps/(business-owner)/HomeBusiness');
+        userDoc = {
+          uid: user.uid,
+          fullName,
+          email,
+          password,
+          role: 'Business',
+          createdAt: new Date(),
+        };
+        redirectPath = '/auth/BusinessRegister'; // This can trigger full business setup
+      } else {
+        showToast('Invalid role selected.', 'error');
+        return;
       }
+  
+      await setDoc(doc(db, 'Travler', user.uid), userDoc);
+  
+      showToast('Sign up successful', 'success');
+      router.replace(redirectPath);
     } catch (error: any) {
-      let msg = 'Something went wrong';
+      console.error(error);
+      let msg = 'Sign up failed';
       if (error.code === 'auth/email-already-in-use') msg = 'Email already in use';
-      else if (error.code === 'auth/weak-password') msg = 'Password is too weak';
-      else if (error.code === 'auth/invalid-email') msg = 'Invalid email address';
+      else if (error.code === 'auth/weak-password') msg = 'Weak password';
       showToast(msg, 'error');
     } finally {
       setLoading(false);
     }
   };
+  
 
   const getRoleButtonStyle = (role: string) => ({
     ...styles.roleButton,
@@ -188,7 +207,10 @@ export default function SignUp() {
               <Text style={styles.roleButtonText}>Traveler</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setSelectedRole('Business')}
+              onPress={() => {
+                setSelectedRole('Business');
+                router.replace('/auth/BusinessRegister')
+              }}
               style={getRoleButtonStyle('Business')}
             >
               <Text style={styles.roleButtonText}>Business</Text>
@@ -287,9 +309,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   roleButtonText: {
+    color: Colors.white,
     fontSize: 16,
-    color: Colors.black,
-    width: '60%',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   selectedRole: {
     backgroundColor: Colors.primary,
@@ -303,6 +326,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '60%',
+    alignSelf: 'center',
     marginVertical: 20,
     elevation: 5, // Shadow for Android
     shadowColor: Colors.black, // Shadow for iOS
@@ -313,6 +337,7 @@ const styles = StyleSheet.create({
   signUpButtonDisabled: {
     opacity: 0.7,
     justifyContent: 'center',
+    alignItems: 'center',
 
   },
   signUpButtonText: {

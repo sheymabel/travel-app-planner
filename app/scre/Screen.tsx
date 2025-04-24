@@ -2,29 +2,43 @@ import React from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native'; // Import navigation hook
 
 const { width, height } = Dimensions.get('window');
   const router = useRouter();
 
-export default function App() {
+export default function Screen() {
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+   
+    });
+  }, []);
+  
   return (
-    <View style={styles.container}>
+    <View style={styles.container} >
       <View style={styles.imageContainer}>
         <Image
         style={{ width: '100%', height: height * 0.49 , resizeMode: 'contain', // Ensure image keeps its aspect ratio
         }}
-          source={require('./../assets/images/login1.png')}
+          source={require('./../../assets/images/login2.png')}
         />
       </View>
 
       <View style={styles.contentContainer}>
-        <Text style={styles.titleBold}>Make your own private 
-        travel plan</Text>
+        <Text style={styles.titleBold}>Customize your
+        High-end travel
+        </Text>
 
         <Text style={styles.subtitle}>
-        Formulate your strategy to receive {'\n'} wonderful gift packs</Text>
+          Countless high-end {'\n'}
+          entertainment facilities
+        </Text>
 
-        <TouchableOpacity   onPress={() => router.replace('/scre/Screen')}   style={styles.playButton}>
+        <TouchableOpacity   onPress={() => router.replace('/scre/Screen1') }  style={styles.playButton}>
       
           <Ionicons name="play" size={32} color="white" style={styles.playIcon} />
         </TouchableOpacity>
@@ -84,6 +98,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 40,
     color:    '#9ca3af',
+
     textDecorationLine: 'underline',
     fontFamily: 'System',
   },
@@ -118,4 +133,6 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
   },
 });
+
+
 

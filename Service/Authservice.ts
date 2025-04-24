@@ -15,7 +15,7 @@ interface AuthUser {
   createdAt: Date;
 }
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { BusinessOwner } from './../models/BusinnessOwner';
+import { Business} from './../models/BusinnessOwner';
 export class AuthService {
   static async signUp(
     fullName: string,
@@ -54,13 +54,13 @@ export class AuthService {
 
   static async addBusinessDetails(
     userId: string,
-    business: Omit<BusinessOwner, 'userId' | 'createdAt'>
+    business: Omit<Business, 'userId' | 'createdAt'>
   ): Promise<void> {
-    const data: BusinessOwner = {
+    const data: Business = {
       userId,
       createdAt: new Date().toISOString(),
       ...business,
     };
-    await setDoc(doc(db, 'businesses', userId), data);
+    await setDoc(doc(db, 'business', userId), data);
   }
 }

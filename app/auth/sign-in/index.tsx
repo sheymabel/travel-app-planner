@@ -24,7 +24,8 @@ import Animated, {
   withSpring,
   interpolate,
 } from 'react-native-reanimated';
-
+import { Traveler } from './../../../models/Traveler';
+import { Business } from './../../../models/BusinnessOwner';
 export default function SignIn() {
   const navigation = useNavigation();
   const router = useRouter();
@@ -98,46 +99,73 @@ export default function SignIn() {
     }
     return true;
   };
-
   const handleSignIn = async () => {
     if (!validateForm()) return;
-
+  
     setLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+  
+      console.log('User UID:', user.uid); // Debugging user UID
 
-      const travelerDocRef = doc(db, 'Travler', user.uid);
-      const businessDocRef = doc(db, 'business', user.uid);
-
-      const [travelerDoc, businessDoc] = await Promise.all([
-        getDoc(travelerDocRef),
-        getDoc(businessDocRef),
-      ]);
-
-      let role: string | null = null;
-      if (travelerDoc.exists()) role = 'Traveler';
-      else if (businessDoc.exists()) role = 'business';
-      else {
-        showToast('User data not found', 'error');
+      const userT = doc(db, 'Travler', user.uid);
+      const userB = doc(db, 'business', user.uid);
+      
+      // Try to get traveler document first
+      let userSnap = await getDoc(userT);
+      
+      // If traveler document doesn't exist, try business document
+      if (!userSnap.exists()) {
+        userSnap = await getDoc(userB);
+      }
+  
+      if (!userSnap.exists()) {
+        console.log('User document does not exist in Firestore'); // Debugging the result
+        showToast('No user data found', 'error');
         setLoading(false);
         return;
       }
-
+      const userData = userSnap.data();
+      let role = userData.role;
+  
+      if (role === 'business') {
+        const business = new Business(
+          userData.userId,
+          userData.fullName,
+          userData.email,
+          userData.phone,
+          userData.address,
+          userData.description,
+          userData.role,
+          userData.category
+        );
+        // Redirect to business dashboard
+        router.replace('/apps/(business-owner)/HomeBusiness');
+      } else if (role === 'Traveler') {
+        const traveler = new Traveler(
+          userData.uid,
+          userData.fullName,
+          userData.email
+        );
+        // Redirect to traveler dashboard
+        router.replace('/apps/(traveler)/trips');
+      } else {
+        showToast('Invalid user role', 'error');
+      }
+  
       showToast('Sign in successful');
-      if (role === 'business') router.replace('/apps/(business-owner)/HomeBusiness');
-      else router.replace('/apps/(traveler)/mytrip');
     } catch (error: any) {
       let msg = 'Something went wrong';
       if (error.code === 'auth/user-not-found') msg = 'No user found with this email';
-      else if (error.code === 'auth/wrong-password') msg = 'Incorrect password';
       else if (error.code === 'auth/invalid-email') msg = 'Invalid email address';
       showToast(msg, 'error');
     } finally {
       setLoading(false);
     }
   };
-
+  
+  
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -212,12 +240,7 @@ export default function SignIn() {
           <TouchableOpacity style={styles.socialButton}>
             <Ionicons name="logo-google" size={24} color={Colors.black} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-facebook" size={24} color={Colors.black} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-apple" size={24} color={Colors.black} />
-          </TouchableOpacity>
+         
         </View>
 
         <View style={styles.signUpContainer}>
@@ -251,7 +274,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.gray[600],
     textAlign: 'center',
   },
   formContainer: {
@@ -268,16 +290,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.gray[800],
+    backgroundColor: Colors.white,
     marginBottom: 8,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.gray[300],
     borderRadius: 12,
     paddingHorizontal: 16,
-        backgroundColor: Colors.white,
+    borderColor: Colors.black, // changed to black
+    backgroundColor: Colors.white,
 
   },
   inputIcon: {
@@ -301,9 +324,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   signInButton: {
+    marginTop: 30,
     backgroundColor: Colors.primary,
     borderRadius: 12,
     height: 50,
+    width: '60%',
+    alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,

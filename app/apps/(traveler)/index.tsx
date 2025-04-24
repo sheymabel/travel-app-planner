@@ -1,8 +1,25 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-
+import React, { useState, useEffect } from 'react';
+import { useNavigation, useRouter } from 'expo-router';
 export default function TravelerHome() {
+  const navigation = useNavigation();
+  const router = useRouter();
+
+useEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerTransparent: true,
+      headerTitle: '',
+   
+    });
+  }
+  , []);
+
+
+
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container}>

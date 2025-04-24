@@ -1,16 +1,64 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '../../../constants/Colors';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import StartNewTripCard from '../../../app/apps/Create-trip/Search-place';
+import React, { useState, useEffect } from 'react';
+  import { useNavigation, useRouter } from 'expo-router';
+
 
 export default function TripsScreen() {
+  const [useTrip,setUserTrip] = useState([]);
+  const [useTripDetails,setUserTripDetails] = useState([]);
+  const [useTripDetailsId,setUserTripDetailsId] = useState([]);
+  const navigation = useNavigation();
+      const router = useRouter();
+    
+    useEffect(() => {
+        navigation.setOptions({
+          headerShown: true,
+          headerTransparent: true,
+          headerTitle: '',
+       
+        });
+      }
+      , []);
+    
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>My Trips</Text>
-        <Text style={styles.subtitle}>No trips planned yet</Text>
-      </View>
+      
+    <View
+     style={{padding:25,
+        paddingTop:55,
+        backgroundColor:Colors.white,
+        height:'100%',
+     }}>
+        <View 
+        style={{
+            display:'flex',
+            flexDirection:'row',
+            alignContent:'center',
+            justifyContent:'space-between',
+        }}
+        >
+        <Text 
+         style={{fontFamily:'outfit-bold',
+            fontSize:26,
+         }}
+            >My Trip</Text>
+          <Ionicons name="add-circle-sharp" size={40} color="black" />
+
+        </View>
+    {useTrip.length === 0 ?
+    <StartNewTripCard/>:
+    null    }
+   
+    </View>
     </SafeAreaView>
-  );
+
+ );
 }
+
 
 const styles = StyleSheet.create({
   container: {

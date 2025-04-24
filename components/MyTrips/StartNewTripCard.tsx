@@ -9,7 +9,7 @@ export default function StartNewTripCard() {
     const router = useRouter();
 
     const handlePress = () => {
-        router.push('/Create-trip/Search-place');
+        router.push('/apps/Create-trip/Search-place');
     };
 
     return (

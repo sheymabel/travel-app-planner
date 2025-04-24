@@ -13,18 +13,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from './../../constants/Colors';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db, auth } from './../../configs/FirebaseConfig';
+import { setDoc, doc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
-
-
-type CategoryType =
-  | 'restaurant'
-  | 'retail'
-  | 'services'
-  | 'health_beauty'
-  | 'entertainment'
-  | 'other';
+import { category } from '../../models/BusinnessOwner';
 
 export default function BusinessRegisterScreen() {
   const router = useRouter();
@@ -35,7 +28,7 @@ export default function BusinessRegisterScreen() {
   const [address, setAddress] = useState('');
   const [password, setPassword] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<CategoryType>('other');
+  const [category, setCategory] = useState<category>('other');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -50,56 +43,61 @@ export default function BusinessRegisterScreen() {
             visibilityTime: 3000,
           });
         };
-    const handleRegister = async () => {
-      if (!isFormValid) {
-        showToast('Please fill in all fields.', 'error');
-        return;
-      }
-    
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phoneRegex = /^[0-9]{8,14}$/;
-    
-      if (!emailRegex.test(email)) {
-        showToast('Please enter a valid email address.', 'error');
-        return;
-      }
-    
-      if (!phoneRegex.test(phone)) {
-        showToast('Please enter a valid phone number.', 'error');
-        return;
-      }
-    
-      try {
-        setLoading(true);
-        setError('');
-    
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const uid = userCredential.user.uid;
-    
-        await addDoc(collection(db, 'businesses'), {
-          uid,
-          fullName,
-          email,
-          password,
-          phone,
-          address,
-          description,
-          category,
-          role:'business',
-          createdAt: Timestamp.now(),
-        });
-    
-        showToast('Business registered successfully!');
-    
-        setLoading(false);
-        router.replace('/auth/sign-in');
-      } catch (err: any) {
-        console.error('Firebase error:', err);
-        setLoading(false);
-        showToast('Registration failed. Please try again.', 'error');
-      }
-    };
-    
+        const handleRegister = async () => {
+          if (!isFormValid) {
+            showToast('Please fill in all fields.', 'error');
+            return;
+          }
+        
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          const phoneRegex = /^[0-9]{8,14}$/;
+        
+          if (!emailRegex.test(email)) {
+            showToast('Please enter a valid email address.', 'error');
+            return;
+          }
+        
+          if (!phoneRegex.test(phone)) {
+            showToast('Please enter a valid phone number.', 'error');
+            return;
+          }
+        
+          try {
+            setLoading(true);
+            setError('');
+        
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const uid = userCredential.user.uid;
+        
+            await setDoc(doc(db, 'business', uid), {
+              fullName,
+              email,
+              phone,
+              address,
+              description,
+              category,
+              password,
+              role: 'business',
+              createdAt: Timestamp.now(),
+            });
+        
+            showToast('Business registered successfully!');
+            setLoading(false);
+            router.replace('/auth/sign-in');
+          } catch (err: any) {
+            console.error('Firebase error:', err);
+            setLoading(false);
+        
+            if (err.code === 'auth/email-already-in-use') {
+              showToast('Email already in use.', 'error');
+            } else if (err.code === 'auth/weak-password') {
+              showToast('Password is too weak.', 'error');
+            } else {
+              showToast('Registration failed. Please try again.', 'error');
+            }
+          }
+        };
+        
     
 
   return (

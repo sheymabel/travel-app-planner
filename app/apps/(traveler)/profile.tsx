@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
-
+import { useRouter } from 'expo-router';
 const ProfileTraveler = () => {
+  const router = useRouter();
   return (
     <View style={styles.container}>
       {/* Profile Header */}
@@ -32,7 +33,8 @@ const ProfileTraveler = () => {
           <Text style={styles.actionText}>Trip History</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.action}>
+        <TouchableOpacity  onPress={() => router.push('/auth/sign-in')}
+        style={styles.action}>
           <Ionicons name="log-out-outline" size={22} color="#e53935" />
           <Text style={[styles.actionText, { color: '#e53935' }]}>Log Out</Text>
         </TouchableOpacity>

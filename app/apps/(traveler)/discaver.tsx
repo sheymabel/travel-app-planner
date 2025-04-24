@@ -1,8 +1,9 @@
-import React from 'react';
+
 import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-
+import React, { useState, useEffect } from 'react';
+  import { useNavigation, useRouter } from 'expo-router';
 const highlights = [
   {
     id: '1',
@@ -25,6 +26,20 @@ const highlights = [
 ];
 
 export default function Discaver() {
+  
+    const navigation = useNavigation();
+    const router = useRouter();
+  
+  useEffect(() => {
+      navigation.setOptions({
+        headerShown: true,
+        headerTransparent: true,
+        headerTitle: '',
+     
+      });
+    }
+    , []);
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Discover Tunisia</Text>
@@ -69,10 +84,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
     overflow: 'hidden',
     elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
+    boxShadow: "0px 2px 3.84px rgba(0, 0, 0, 0.25)"
   },
   image: {
     width: '100%',
