@@ -1,0 +1,25 @@
+[debug] [2025-04-14T19:50:16.686Z] ----------------------------------------------------------------------
+[debug] [2025-04-14T19:50:16.689Z] Command:       /usr/bin/node /mnt/c/nvm4w/nodejs/node_modules/firebase-tools/lib/bin/firebase.js init
+[debug] [2025-04-14T19:50:16.689Z] CLI Version:   13.35.1
+[debug] [2025-04-14T19:50:16.690Z] Platform:      linux
+[debug] [2025-04-14T19:50:16.690Z] Node Version:  v18.20.8
+[debug] [2025-04-14T19:50:16.691Z] Time:          Mon Apr 14 2025 20:50:16 GMT+0100 (British Summer Time)
+[debug] [2025-04-14T19:50:16.692Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-04-14T19:50:16.722Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-04-14T19:50:16.725Z] > authorizing via signed-in user (bellayounichaima45@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /mnt/c/Users/MSI/Desktop/travel-app
+
+Before we get started, keep in mind:
+
+  * You are currently outside your home directory
+
