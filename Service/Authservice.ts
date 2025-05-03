@@ -64,3 +64,17 @@ export class AuthService {
     await setDoc(doc(db, 'business', userId), data);
   }
 }
+// Function to fetch business data from Firestore
+export const fetchBusinessFromFirestore = async (userId: string) => {
+  try {
+    const businessDoc = await getDoc(doc(db, 'businesses', userId));
+    
+    if (businessDoc.exists) {
+      return businessDoc.data();
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching business:', error);
+    return null;
+  }
+};

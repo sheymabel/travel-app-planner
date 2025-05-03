@@ -7,6 +7,8 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Dimensions, Linking,
+  ScrollView,
   Image,
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
@@ -26,6 +28,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Traveler } from './../../../models/Traveler';
 import { Business } from './../../../models/BusinnessOwner';
+const { height } = Dimensions.get('window');
 export default function SignIn() {
   const navigation = useNavigation();
   const router = useRouter();
@@ -47,14 +50,16 @@ export default function SignIn() {
       headerTitle: '',
       headerLeft: () => (
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.replace('/scre/Screen1')}
           style={styles.backButton}
         >
           <Ionicons name="arrow-back" size={24} color={Colors.black} />
         </TouchableOpacity>
       ),
     });
-
+    const openGoogle = () => {
+      Linking.openURL('https://www.google.com'); // Opens the Google URL in the default browser
+    };
     // Animate header
     headerOpacity.value = withTiming(1, { duration: 500 });
     headerTranslateY.value = withSpring(0, { damping: 10 });
@@ -137,11 +142,10 @@ export default function SignIn() {
           userData.phone,
           userData.address,
           userData.description,
-          userData.role,
-          userData.category
+          userData.role
         );
         // Redirect to business dashboard
-        router.replace('/apps/(business-owner)/HomeBusiness');
+        router.replace('/apps/business-owner/HomeBusiness');
       } else if (role === 'Traveler') {
         const traveler = new Traveler(
           userData.uid,
@@ -149,7 +153,7 @@ export default function SignIn() {
           userData.email
         );
         // Redirect to traveler dashboard
-        router.replace('/apps/(traveler)/trips');
+        router.replace('/apps/traveler/trips');
       } else {
         showToast('Invalid user role', 'error');
       }
@@ -164,13 +168,22 @@ export default function SignIn() {
       setLoading(false);
     }
   };
-  
+  const openGoogle = () => {
+    Linking.openURL('https://mail.google.com'); // Open the Google URL
+  };
   
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
+       <ScrollView contentContainerStyle={styles.inner}>
+        <TouchableOpacity
+          onPress={() => router.replace('/App')}
+          style={{ marginTop: -40, padding: 8, borderRadius: 10 }}
+        >
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
       <Animated.View style={[styles.header, headerAnimatedStyle]}>
         <Text style={styles.title}>Welcome Back!</Text>
         <Text style={styles.subtitle}>Sign in to continue your journey</Text>
@@ -185,7 +198,6 @@ export default function SignIn() {
               style={styles.input}
               placeholder="Enter your email"
               keyboardType="email-address"
-              autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
             />
@@ -237,9 +249,12 @@ export default function SignIn() {
         </View>
 
         <View style={styles.socialButtons}>
-          <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-google" size={24} color={Colors.black} />
-          </TouchableOpacity>
+        <TouchableOpacity 
+      style={styles.socialButton}
+      onPress={openGoogle}  // Add the onPress event to open Google
+    >
+      <Ionicons name="logo-google" size={24} color="black" />  {/* Google Icon */}
+    </TouchableOpacity>
          
         </View>
 
@@ -250,7 +265,7 @@ export default function SignIn() {
           </TouchableOpacity>
         </View>
       </Animated.View>
-
+      </ScrollView>
       <Toast />
     </KeyboardAvoidingView>
   );
@@ -356,6 +371,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     color: Colors.gray[500],
     fontSize: 14,
+  },
+  inner: {
+    marginTop: 20,
+    paddingTop: 10,
   },
   socialButtons: {
     flexDirection: 'row',

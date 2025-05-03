@@ -6,6 +6,10 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
+    "extra": {
+      "MAPTILER_KEY":"process.env.EXPO_PUBLIC_MAPTILER_KEY"
+    },
+    
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

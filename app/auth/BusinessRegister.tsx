@@ -17,7 +17,7 @@ import { setDoc, doc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
-import { category } from '../../models/BusinnessOwner';
+import { Category } from '../../models/BusinnessOwner';
 
 export default function BusinessRegisterScreen() {
   const router = useRouter();
@@ -28,77 +28,76 @@ export default function BusinessRegisterScreen() {
   const [address, setAddress] = useState('');
   const [password, setPassword] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<category>('other');
+  const [category, setCategory] = useState<Category>('other');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
 
   const isFormValid =
     fullName && email && phone && address && password && description && category;
-    function showToast(message: string, type: string = 'success') {
-       Toast.show({
-            type,
-            position: 'top',
-            text1: message,
-            visibilityTime: 3000,
-          });
-        };
-        const handleRegister = async () => {
-          if (!isFormValid) {
-            showToast('Please fill in all fields.', 'error');
-            return;
-          }
-        
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          const phoneRegex = /^[0-9]{8,14}$/;
-        
-          if (!emailRegex.test(email)) {
-            showToast('Please enter a valid email address.', 'error');
-            return;
-          }
-        
-          if (!phoneRegex.test(phone)) {
-            showToast('Please enter a valid phone number.', 'error');
-            return;
-          }
-        
-          try {
-            setLoading(true);
-            setError('');
-        
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const uid = userCredential.user.uid;
-        
-            await setDoc(doc(db, 'business', uid), {
-              fullName,
-              email,
-              phone,
-              address,
-              description,
-              category,
-              password,
-              role: 'business',
-              createdAt: Timestamp.now(),
-            });
-        
-            showToast('Business registered successfully!');
-            setLoading(false);
-            router.replace('/auth/sign-in');
-          } catch (err: any) {
-            console.error('Firebase error:', err);
-            setLoading(false);
-        
-            if (err.code === 'auth/email-already-in-use') {
-              showToast('Email already in use.', 'error');
-            } else if (err.code === 'auth/weak-password') {
-              showToast('Password is too weak.', 'error');
-            } else {
-              showToast('Registration failed. Please try again.', 'error');
-            }
-          }
-        };
-        
-    
+
+  function showToast(message: string, type: string = 'success') {
+    Toast.show({
+      type,
+      position: 'top',
+      text1: message,
+      visibilityTime: 3000,
+    });
+  };
+
+  const handleRegister = async () => {
+    if (!isFormValid) {
+      showToast('Please fill in all fields.', 'error');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[0-9]{8,14}$/;
+
+    if (!emailRegex.test(email)) {
+      showToast('Please enter a valid email address.', 'error');
+      return;
+    }
+
+    if (!phoneRegex.test(phone)) {
+      showToast('Please enter a valid phone number.', 'error');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
+
+      await setDoc(doc(db, 'business', uid), {
+        fullName,
+        email,
+        phone,
+        address,
+        description,
+        category,
+        password,
+        role: 'business',
+        createdAt: Timestamp.now(),
+      });
+
+      showToast('Business registered successfully!');
+      setLoading(false);
+      router.replace('/auth/sign-in');
+    } catch (err: any) {
+      console.error('Firebase error:', err);
+      setLoading(false);
+
+      if (err.code === 'auth/email-already-in-use') {
+        showToast('Email already in use.', 'error');
+      } else if (err.code === 'auth/weak-password') {
+        showToast('Password is too weak.', 'error');
+      } else {
+        showToast('Registration failed. Please try again.', 'error');
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -115,55 +114,75 @@ export default function BusinessRegisterScreen() {
 
         {error !== '' && <Text style={styles.errorText}>{error}</Text>}
 
+        {/* Full Name Input */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={[styles.input, error.includes('name') && { borderColor: 'red' }]}
-            value={fullName}
-            onChangeText={setFullName}
-            autoCapitalize="words"
-          />
+          <View style={styles.inputContainer}>
+            <Ionicons name="person" size={20} color={Colors.gray[600]} style={styles.icon} />
+            <TextInput
+              style={[styles.input, error.includes('name') && { borderColor: 'red' }]}
+              value={fullName}
+              onChangeText={setFullName}
+              autoCapitalize="words"
+            />
+          </View>
         </View>
 
+        {/* Email Input */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={[styles.input, error.includes('email') && { borderColor: 'red' }]}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+          <View style={styles.inputContainer}>
+            <Ionicons name="mail" size={20} color={Colors.gray[600]} style={styles.icon} />
+            <TextInput
+              style={[styles.input, error.includes('email') && { borderColor: 'red' }]}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
         </View>
 
+        {/* Phone Input */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Phone</Text>
-          <TextInput
-            style={[styles.input, error.includes('phone') && { borderColor: 'red' }]}
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-          />
+          <View style={styles.inputContainer}>
+            <Ionicons name="call" size={20} color={Colors.gray[600]} style={styles.icon} />
+            <TextInput
+              style={[styles.input, error.includes('phone') && { borderColor: 'red' }]}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+            />
+          </View>
         </View>
 
+        {/* Address Input */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Address</Text>
-          <TextInput
-            style={styles.input}
-            value={address}
-            onChangeText={setAddress}
-            autoCapitalize="words"
-          />
+          <View style={styles.inputContainer}>
+            <Ionicons name="location" size={20} color={Colors.gray[600]} style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              value={address}
+              onChangeText={setAddress}
+              autoCapitalize="words"
+            />
+          </View>
         </View>
 
+        {/* Password Input */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View style={styles.inputContainer}>
+            <Ionicons name="lock-closed" size={20} color={Colors.gray[600]} style={styles.icon} />
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+          </View>
           {password.length > 0 && (
             <Text
               style={{
@@ -179,16 +198,21 @@ export default function BusinessRegisterScreen() {
           )}
         </View>
 
+        {/* Description Input */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Description</Text>
-          <TextInput
-            style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
-            value={description}
-            onChangeText={setDescription}
-            multiline
-          />
+          <View style={styles.inputContainer}>
+            <Ionicons name="text" size={20} color={Colors.gray[600]} style={styles.icon} />
+            <TextInput
+              style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
+              value={description}
+              onChangeText={setDescription}
+              multiline
+            />
+          </View>
         </View>
 
+        {/* Category Picker */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Category</Text>
           <View style={[styles.input, { padding: 0 }]}>
@@ -203,32 +227,34 @@ export default function BusinessRegisterScreen() {
           </View>
         </View>
 
+        {/* Register Button */}
         <TouchableOpacity
-  style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]}
-  onPress={handleRegister}
-  disabled={!isFormValid || loading}
->
-  {loading ? (
-    <ActivityIndicator color="#fff" />
-  ) : (
-    <Text style={styles.buttonText}>Register</Text>
-  )}
-</TouchableOpacity>
+          style={[styles.button, (!isFormValid || loading) && styles.buttonDisabled]}
+          onPress={handleRegister}
+          disabled={!isFormValid || loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Register</Text>
+          )}
+        </TouchableOpacity>
 
+        {/* Sign In Link */}
+        <TouchableOpacity onPress={() => router.replace('/auth/sign-in')}>
+          <Text style={styles.signInLink}>
+            Already have an account? <Text style={styles.linkText}>Sign In</Text>
+          </Text>
+        </TouchableOpacity>
 
-{/* 🔙 Link to Sign In */}
-<TouchableOpacity onPress={() => router.replace('/auth/sign-in')}>
-  <Text style={styles.signInLink}>
-    Already have an account? <Text style={styles.linkText}>Sign In</Text>
-  </Text>
-</TouchableOpacity>
-<Toast/>
+        <Toast />
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // Add your styles as needed
   signInLink: {
     marginTop: 16,
     textAlign: 'center',
@@ -240,7 +266,6 @@ const styles = StyleSheet.create({
     color: '#3b82f6',
     fontFamily: 'outfit-medium',
   },
-  
   container: {
     flex: 1,
     paddingHorizontal: 20,
@@ -275,13 +300,22 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: Colors.gray[800],
   },
-  input: {
-    fontFamily: 'outfit',
-    fontSize: 16,
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.gray[400],
-    padding: 15,
     borderRadius: 10,
+    paddingHorizontal: 10,
+  },
+  icon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    fontFamily: 'outfit',
+    fontSize: 16,
+    paddingVertical: 12,
     color: Colors.gray[800],
   },
   errorText: {
@@ -310,6 +344,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
-
-

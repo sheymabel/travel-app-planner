@@ -3,7 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Link, Slot } from 'expo-router';  // Import Slot from expo-router
 
-export default function AppLayout({ children }) {
+export default function AppLayout({ }) {
   return (
     <View style={styles.container}>
     
@@ -14,7 +14,7 @@ export default function AppLayout({ children }) {
       
       <View >
         {/* Link to navigate to '/App' */}
-        <Link href="/App" >
+        <Link href="/apps/Home" >
         
         </Link>
       </View>

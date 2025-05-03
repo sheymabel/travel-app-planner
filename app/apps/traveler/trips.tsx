@@ -2,7 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../../constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import StartNewTripCard from '../../../app/apps/Create-trip/Search-place';
+import StartNewTripCard from '../Create-trip/Search-place';
 import React, { useState, useEffect } from 'react';
   import { useNavigation, useRouter } from 'expo-router';
 

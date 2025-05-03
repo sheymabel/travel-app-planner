@@ -22,23 +22,24 @@ export default function Screen() {
     <View style={styles.container} >
       <View style={styles.imageContainer}>
         <Image
-        style={{ width: '100%', height: height * 0.49 , resizeMode: 'contain', // Ensure image keeps its aspect ratio
+        style={{ width: '90%', height: height * 0.50 , resizeMode: 'contain', // Ensure image keeps its aspect ratio
         }}
-          source={require('./../../assets/images/login2.png')}
+          source={require('./../../assets/images/login3.png')}
         />
       </View>
 
       <View style={styles.contentContainer}>
-        <Text style={styles.titleBold}>Customize your
-        High-end travel
-        </Text>
+              <Text style={styles.titleBold}>High-end leisure projects 
+              to choose from
+              </Text>
+      
+              <Text style={styles.subtitle}>
+              The world's first-class modern leisure {'\n'}
+              and entertainment method
+                
+              </Text>
 
-        <Text style={styles.subtitle}>
-          Countless high-end {'\n'}
-          entertainment facilities
-        </Text>
-
-        <TouchableOpacity   onPress={() => router.replace('/scre/Screen1') }  style={styles.playButton}>
+        <TouchableOpacity   onPress={() => router.replace('/apps/Home')}   style={styles.playButton}>
       
           <Ionicons name="play" size={32} color="white" style={styles.playIcon} />
         </TouchableOpacity>
@@ -66,10 +67,10 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     overflow: 'hidden',
-    paddingTop: 20,
   },
  
   contentContainer: {
+    marginTop: -50,
     flex: 1,
     width: '100%',
     alignItems: 'center',
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
   },
   titleBold: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: 'bold',
     color: '#000',
     textAlign: 'center',

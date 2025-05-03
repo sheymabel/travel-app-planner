@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -89,26 +90,26 @@ export default function SignUp() {
       showToast('Please enter all details', 'error');
       return;
     }
-  
+
     if (!emailRegex.test(email)) {
       showToast('Please enter a valid email', 'error');
       return;
     }
-  
+
     if (!passwordRegex.test(password)) {
       showToast('Password must be at least 6 characters with letters and numbers', 'error');
       return;
     }
-  
+
     try {
       setLoading(true);
-  
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-  
+
       let userDoc;
       let redirectPath;
-  
+
       if (selectedRole === 'Traveler') {
         userDoc = {
           uid: user.uid,
@@ -132,9 +133,9 @@ export default function SignUp() {
         showToast('Invalid role selected.', 'error');
         return;
       }
-  
+
       await setDoc(doc(db, 'Travler', user.uid), userDoc);
-  
+
       showToast('Sign up successful', 'success');
       router.replace(redirectPath);
     } catch (error: any) {
@@ -147,7 +148,6 @@ export default function SignUp() {
       setLoading(false);
     }
   };
-  
 
   const getRoleButtonStyle = (role: string) => ({
     ...styles.roleButton,
@@ -156,6 +156,14 @@ export default function SignUp() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+     <ScrollView contentContainerStyle={styles.inner}>
+        <TouchableOpacity
+          onPress={() => router.replace('/auth/sign-in')}
+          style={{ marginTop: -40, padding: 8, borderRadius: 10 }}
+        >
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
+       
       <Animated.View style={[styles.header, headerAnimatedStyle]}>
         <Text style={styles.title}>Create Account</Text>
       </Animated.View>
@@ -163,12 +171,15 @@ export default function SignUp() {
       <Animated.View style={[styles.formContainer, formAnimatedStyle]}>
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your full name"
-            value={fullName}
-            onChangeText={setFullName}
-          />
+          <View style={styles.inputWrapper}>
+            <Ionicons name="person-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your full name"
+              value={fullName}
+              onChangeText={setFullName}
+            />
+          </View>
         </View>
 
         <View style={styles.inputContainer}>
@@ -188,13 +199,16 @@ export default function SignUp() {
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your password"
-            secureTextEntry={true}
-            value={password}
-            onChangeText={setPassword}
-          />
+          <View style={styles.inputWrapper}>
+            <Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your password"
+              secureTextEntry={true}
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
         </View>
 
         <View style={styles.inputContainer}>
@@ -237,7 +251,7 @@ export default function SignUp() {
           </TouchableOpacity>
         </View>
       </Animated.View>
-
+      </ScrollView>
       <Toast />
     </KeyboardAvoidingView>
   );
@@ -286,8 +300,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    borderWidth: 1,
-    borderColor: Colors.gray[300],
+   
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 16,
@@ -302,17 +315,21 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: Colors.gray[300],
+    borderColor: Colors.primary,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 5,
   },
+  inner: {
+    marginTop: 20,
+    paddingTop: 10,
+  },
   roleButtonText: {
-    color: Colors.white,
+    color: Colors.primary,
     fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center',
+    textAlign: 'center', 
   },
   selectedRole: {
     backgroundColor: Colors.primary,
@@ -338,7 +355,6 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     justifyContent: 'center',
     alignItems: 'center',
-
   },
   signUpButtonText: {
     color: Colors.white,

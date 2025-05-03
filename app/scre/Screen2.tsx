@@ -24,21 +24,21 @@ export default function Screen() {
         <Image
         style={{ width: '100%', height: height * 0.49 , resizeMode: 'contain', // Ensure image keeps its aspect ratio
         }}
-          source={require('./../../assets/images/login1.png')}
+          source={require('./../../assets/images/login2.png')}
         />
       </View>
 
       <View style={styles.contentContainer}>
-        <Text style={styles.titleBold}>Make your own private 
-        travel plan
+        <Text style={styles.titleBold}>Customize your
+        High-end travel
         </Text>
 
         <Text style={styles.subtitle}>
-        Formulate your strategy to receive 
- {'\n'}
- wonderful gift packs        </Text>
+          Countless high-end {'\n'}
+          entertainment facilities
+        </Text>
 
-        <TouchableOpacity   onPress={() => router.replace('/scre/Screen2') }  style={styles.playButton}>
+        <TouchableOpacity   onPress={() => router.replace('/scre/Screen3') }  style={styles.playButton}>
       
           <Ionicons name="play" size={32} color="white" style={styles.playIcon} />
         </TouchableOpacity>

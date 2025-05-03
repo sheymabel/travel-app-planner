@@ -48,9 +48,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   searchInput: {
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 10,
     padding: 10,
     marginBottom: 20,
   },

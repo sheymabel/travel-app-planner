@@ -1,23 +1,13 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
-import { useState, useEffect } from 'react';
+// app.config.js
+import 'dotenv/config';
 
-const firebaseConfig = {
-  // your firebase config here
+export default {
+  expo: {
+    name: "TravelApp",
+    slug: "travel-app",
+    version: "1.0.0",
+    extra: {
+      MAPBOX_TOKEN: process.env.EXPO_PUBLIC_MAPBOX_TOKEN,
+    },
+  },
 };
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-export default function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-    });
-    return unsubscribe;
-  }, []);
-
-  return { user };
-}

@@ -1,121 +1,77 @@
 import React from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Colors } from '../constants/Colors';
 
-const { width, height } = Dimensions.get('window');
-  const router = useRouter();
 
 export default function App() {
+  const router = useRouter();
   return (
-    <View style={styles.container}>
-      <View style={styles.imageContainer}>
-        <Image
-        style={{ width: '100%', height: height * 0.49 , resizeMode: 'contain', // Ensure image keeps its aspect ratio
-        }}
-          source={require('./../assets/images/login1.png')}
-        />
+    <View>
+      <Image
+        source={require('./../assets/images/tunis.png')}
+        style={styles.image}
+        resizeMode="stretch" // Ensure image keeps its aspect ratio
+      />
+      <View style={styles.container}>
+        <Text style={styles.title}>Welcome to Tunisia!</Text>
+        <Text style={styles.title1}>   Discover the beauty of Tunisia — from Mediterranean beaches to ancient ruins and vibrant souks.
+        </Text>
+
       </View>
-
-      <View style={styles.contentContainer}>
-        <Text style={styles.titleBold}>Make your own private 
-        travel plan</Text>
-
-        <Text style={styles.subtitle}>
-        Formulate your strategy to receive {'\n'} wonderful gift packs</Text>
-
-        <TouchableOpacity   onPress={() => router.replace('/scre/Screen')}   style={styles.playButton}>
-      
-          <Ionicons name="play" size={32} color="white" style={styles.playIcon} />
-        </TouchableOpacity>
-
-        <View style={styles.sponsorBadge}>
-          <MaterialCommunityIcons name="flash" size={16} color="#FFD700" />
-          <Text style={styles.sponsorText}>Nordic Vacation Sponsor</Text>
-        </View>
+      <View style={styles.backButton}>
+        <Text  onPress={() => router.push('/scre/Screen1')}
+        style={styles.buttonText}> Open</Text>
       </View>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-  },
-  imageContainer: {
+  image: {
     width: '100%',
-    height: height * 0.45,
+    height: 450,
+    
+    // Adjusts based on screen height for responsiveness
+  },
+  container: {
     justifyContent: 'center',
     alignItems: 'center',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    overflow: 'hidden',
-    paddingTop: 20,
+    marginTop: -30,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
- 
-  contentContainer: {
-    flex: 1,
-    width: '100%',
-    alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingTop: 40,
-    position: 'relative',
+  title1:{
+    fontSize: 15,
+    color: '#839096FF',
+    marginTop: 20,
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
   title: {
-    fontSize: 28,
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 5,
-    fontFamily: 'System',
-  },
-  titleBold: {
-    fontSize: 32,
+    color: '#3A4042FF',
+    fontSize: 25,
     fontWeight: 'bold',
-    color: '#000',
+    marginTop: 20,
+  },
+  backButton: {
+  padding: 5,
+  backgroundColor:'#0EA5E9',
+  borderRadius: 50,
+  alignItems: 'center',
+  flexDirection: 'row',
+  justifyContent: 'center',
+  height: 50,
+    width: '50%',
+  marginTop: 60,
+  marginBottom: 10,
+  //this is is to center the button in the screen
+  alignSelf: 'center',
+},
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 25,
-    fontFamily: 'System',
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 40,
-    color:    '#9ca3af',
-    textDecorationLine: 'underline',
-    fontFamily: 'System',
-  },
-  playButton: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#0EA5E9',
-    justifyContent: 'center',
-    alignItems: 'center',
-    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.3)',
-    marginBottom: 40,
-  },
-  playIcon: {
-    marginLeft: 4,
-  },
-  sponsorBadge: {
-    position: 'absolute',
-    bottom: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#FFFFFFFF',
-  },
-  sponsorText: {
-    marginLeft: 5,
-    fontSize: 12,
-    color: '#6B7280',
-    fontFamily: 'System',
+    fontSize: 17,
   },
 });
-

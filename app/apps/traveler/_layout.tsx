@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../../constants/Colors';
+import { Colors } from '../../../constants/Colors'; // Adjust the path as necessary
 
 
 export default function TravelerLayout() {

@@ -14,7 +14,7 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => router.replace('/scre/Screen')} style={{ width: '100%', height: '100%' }}>
+      <TouchableOpacity onPress={() => router.replace('/scre/Screen1')} style={{ width: '100%', height: '100%' }}>
          <Text>
 Wellcome Travel 
                        </Text>
