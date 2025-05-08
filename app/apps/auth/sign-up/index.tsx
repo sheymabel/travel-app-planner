@@ -38,7 +38,7 @@ export default function SignUp() {
   const headerTranslateY = useSharedValue(-20);
   const formOpacity = useSharedValue(0);
   const formTranslateY = useSharedValue(30);
-const AuthPath='./auth/sign-in'
+const AuthPath='/apps/auth/sign-in';
   useEffect(() => {
     navigation.setOptions({
       headerShown: true,
@@ -46,7 +46,7 @@ const AuthPath='./auth/sign-in'
       headerTitle: '',
       headerLeft: () => (
         <TouchableOpacity
-          onPress={() => router.replace(AuthPath)}
+          onPress={() => router.replace('/apps/auth/sign-in')}
           style={styles.backButton}
         >
           <Ionicons name="arrow-back" size={24} color={Colors.black} />
@@ -228,7 +228,7 @@ const AuthPath='./auth/sign-in'
             <TouchableOpacity
               onPress={() => {
                 setSelectedRole('Business');
-                router.replace('./auth/BusinessRegister')
+                router.replace('/apps/auth/BusinessRegister')
               }}
               style={getRoleButtonStyle('Business')}
             >
@@ -251,7 +251,7 @@ const AuthPath='./auth/sign-in'
 
         <View style={styles.signInContainer}>
           <Text style={styles.signInText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.replace('./auth/sign-in')}>
+          <TouchableOpacity onPress={() => router.replace('/apps/auth/sign-in')}>
             <Text style={styles.signInLink}>Sign In</Text>
           </TouchableOpacity>
         </View>

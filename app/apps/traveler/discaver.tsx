@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
     overflow: 'hidden',
     elevation: 2,
-    boxShadow: "0px 2px 3.84px rgba(0, 0, 0, 0.25)"
+    boxShadow: "0px 2px 3.84px rgba(0, 0, 0, 0.25)",
   },
   image: {
     width: '100%',

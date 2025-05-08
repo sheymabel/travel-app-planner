@@ -64,9 +64,9 @@ interface Profile {
 
   const handleSave = () => {
     // Later, here you would call your API to update the user profile.
-    console.log('Profile saved:', profile);
+    //console.log('Profile saved:');
     Alert.alert('Success', 'Profile updated successfully!');
-    router.back();
+    router.replace('/apps/auth/sign-in');
   };
 
   return (

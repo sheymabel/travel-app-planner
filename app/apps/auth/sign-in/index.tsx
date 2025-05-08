@@ -244,7 +244,7 @@ export default function SignIn() {
 
         <View style={styles.signUpContainer}>
           <Text style={styles.signUpText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('./auth/sign-up')}>
+          <TouchableOpacity onPress={() => router.replace('/apps/auth/sign-up')}>
             <Text style={styles.signUpLink}>Sign Up</Text>
           </TouchableOpacity>
         </View>
