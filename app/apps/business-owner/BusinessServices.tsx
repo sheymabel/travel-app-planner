@@ -1,100 +1,157 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  StyleSheet, 
-  Image, 
-  Alert, 
-  Animated 
-} from 'react-native';
-import {styles} from './styles'; // Import styles from a separate file
-import { router } from 'expo-router';
-import { Router } from 'react-router-dom';
-const dummyServices = [
-  {
-    id: '1',
-    name: 'Guided Medina Tour',
-    description: 'A 3-hour tour of the historic Tunis Medina with a professional guide.',
-    price: 40,
-    image: 'https://images.unsplash.com/photo-1589460953527-4b2b6b643f4d?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '2',
-    name: 'Camel Ride at Sunset',
-    description: 'Enjoy a magical camel ride in the Sahara dunes as the sun sets.',
-    price: 60,
-    image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=800&q=80',
-  },
-];
+import React, { useState } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, Alert, ScrollView } from 'react-native';
+import { useRoute } from '@react-navigation/native';
+import axios from 'axios';
 
-const BusinessServices = () => {
-  const [services, setServices] = useState(dummyServices);
-  const [loading, setLoading] = useState(false);
-  const [fadeAnim] = useState(new Animated.Value(0)); // Initial fade value is 0
+const AddServiceScreen = ({ navigation }) => {
+  const route = useRoute();
 
-  // Trigger the fade-in animation when the component mounts
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1, // Target opacity value
-      duration: 500, // Duration of the animation
-      useNativeDriver: true, // Use native driver for performance
-    }).start();
-  }, []);
+  const [serviceData, setServiceData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    duration: '', // in minutes
+    category: '',
+  });
 
-  const handleDelete = (id: string) => {
-    Alert.alert('Confirm Delete', 'Are you sure you want to delete this service?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        onPress: () => setServices(prev => prev.filter(service => service.id !== id)),
-        style: 'destructive',
-      },
-    ]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleInputChange = (name, value) => {
+    setServiceData({
+      ...serviceData,
+      [name]: value,
+    });
   };
 
-  const renderItem = ({ item }: { item: any }) => (
-    <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
-      <Image source={{ uri: item.image }} style={styles.image} />
-      <View style={styles.content}>
-        <Text style={styles.title}>{item.name}</Text>
-        <Text style={styles.description}>{item.description}</Text>
-        <Text style={styles.price}>${item.price}</Text>
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.editButton} onPress={() => router.replace("./BusinessOwner/Service/EditService")}>
-            <Text style={styles.btnText}>Edit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
-            <Text style={styles.btnText}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Animated.View>
-  );
+  const handleSubmit = async () => {
+    if (!serviceData.name || !serviceData.price) {
+      Alert.alert('Error', 'Service name and price are required');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post(
+        `https://your-api-domain.com/${businessId}/services`,
+        serviceData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            // Add authorization header if needed
+            // 'Authorization': `Bearer ${userToken}`,
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        Alert.alert('Success', 'Service added successfully', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      }
+    } catch (error) {
+      console.error('Error adding service:', error);
+      Alert.alert('Error', 'Failed to add service. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>My Services</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Add New Service</Text>
 
-      <TouchableOpacity style={styles.addButton}>
-        <Text style={styles.addText}>+ Add New Service</Text>
-      </TouchableOpacity>
-
-      {loading ? (
-        <ActivityIndicator size="large" color="#FF5722" />
-      ) : (
-        <FlatList
-          data={services}
-          keyExtractor={item => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={{ paddingBottom: 20 }}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Service Name*</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. Haircut, Consultation"
+          value={serviceData.name}
+          onChangeText={(text) => handleInputChange('name', text)}
         />
-      )}
-    </View>
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          style={[styles.input, styles.multilineInput]}
+          placeholder="Describe the service..."
+          multiline
+          numberOfLines={4}
+          value={serviceData.description}
+          onChangeText={(text) => handleInputChange('description', text)}
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Price*</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. 50.00"
+          keyboardType="decimal-pad"
+          value={serviceData.price}
+          onChangeText={(text) => handleInputChange('price', text)}
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Duration (minutes)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. 30"
+          keyboardType="numeric"
+          value={serviceData.duration}
+          onChangeText={(text) => handleInputChange('duration', text)}
+        />
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Category</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="e.g. Beauty, Health"
+          value={serviceData.category}
+          onChangeText={(text) => handleInputChange('category', text)}
+        />
+      </View>
+
+      <Button
+        title={isLoading ? 'Adding...' : 'Add Service'}
+        onPress={handleSubmit}
+        disabled={isLoading}
+      />
+    </ScrollView>
   );
 };
 
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  inputGroup: {
+    marginBottom: 15,
+  },
+  label: {
+    marginBottom: 5,
+    fontWeight: '500',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    fontSize: 16,
+  },
+  multilineInput: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+});
 
-export default BusinessServices;
+export default AddServiceScreen;

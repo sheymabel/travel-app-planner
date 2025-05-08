@@ -34,12 +34,12 @@ useEffect(() => {
     headerShown: false,
   });
 }, []);
-const checkLoginAndNavigate = async (path: '/auth/sign-in' | '/auth/sign-up' ) => {
+const checkLoginAndNavigate = async (path: './auth/sign-in' | './auth/sign-up' ) => {
   const token = await AsyncStorage.getItem('token');
   if (token) {
     router.replace(path); // Navigate to destination if logged in
   } else {
-    router.replace('/auth/sign-in'); // Otherwise go to login
+    router.replace('./auth/sign-in'); // Otherwise go to login
   }
 };
 
@@ -49,7 +49,7 @@ const handlePress = () => {
     "You must be signed in to access this feature.",
     [
       { text: "Cancel", style: "cancel" },
-      { text: "Sign In", onPress: () => router.push("/auth/sign-in") },
+      { text: "Sign In", onPress: () => router.replace('./auth/sign-in') },
     ]
   );
 };
@@ -137,15 +137,15 @@ const handlePress = () => {
           <Ionicons name="home" size={26} color="#007AFF" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem} onPress={() => checkLoginAndNavigate('/auth/sign-in')}>
+        <TouchableOpacity style={styles.navItem} onPress={() => checkLoginAndNavigate('./auth/sign-in')}>
   <MaterialCommunityIcons name="image-multiple-outline" size={26} color="#8E8E93" />
 </TouchableOpacity>
 
-<TouchableOpacity style={styles.navItem} onPress={() => checkLoginAndNavigate('/auth/sign-in')}>
+<TouchableOpacity style={styles.navItem} onPress={() => checkLoginAndNavigate('./auth/sign-in')}>
   <MaterialCommunityIcons name="compass-outline" size={26} color="#8E8E93" />
 </TouchableOpacity>
 
-<TouchableOpacity style={styles.navItem} onPress={() => checkLoginAndNavigate('/auth/sign-in')}>
+<TouchableOpacity style={styles.navItem} onPress={() => checkLoginAndNavigate('./auth/sign-in')}>
   <MaterialCommunityIcons name="account-outline" size={26} color="#8E8E93" />
 </TouchableOpacity>
 

@@ -32,7 +32,6 @@ export default function HomeScreen() {
             headerShown: true,
             headerTransparent: true,
             headerTitle: '',
-         
           });
         }
         , []);

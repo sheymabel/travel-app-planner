@@ -29,7 +29,7 @@ const ProfileScreen = () => {
   const handleLogout = () => {
     signOut(auth)
       .then(() => {
-        router.replace('/auth/sign-in');
+        router.replace('./auth/sign-in');
       })
       .catch((error) => {
         console.error('Error signing out: ', error);

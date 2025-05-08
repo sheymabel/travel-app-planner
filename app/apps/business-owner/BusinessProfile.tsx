@@ -11,7 +11,7 @@ const ProfileScreen = () => {
     signOut(auth)
       .then(() => {
         // Redirect to the login screen after successful logout
-        router.replace('/auth/sign-in');
+        router.replace('./auth/sign-in');
       })
       .catch((error) => {
         console.error("Error signing out: ", error);
