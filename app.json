@@ -10,11 +10,13 @@
       "MAPTILER_KEY": "process.env.EXPO_PUBLIC_MAPTILER_KEY"
     },
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
+      "newArchEnabled":false,
       "supportsTablet": true
     },
     "android": {
+      "newArchEnabled":false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -27,7 +29,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
+     
       [
         "expo-splash-screen",
         {

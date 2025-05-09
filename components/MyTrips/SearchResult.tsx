@@ -9,7 +9,7 @@ import {
 import MapboxGL from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import Constants from 'expo-constants';
-import { styles } from './../../app/apps/Create-trip/Mapboxstyles'; // ✅ Updated
+import { styles } from '../../src/styles/create-trip/Mapboxstyles'; // ✅ Updated
 
 interface SearchResultItem {
   place_name: string;

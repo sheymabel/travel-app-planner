@@ -67,9 +67,9 @@ export class AuthService {
 // Function to fetch business data from Firestore
 export const fetchBusinessFromFirestore = async (userId: string) => {
   try {
-    const businessDoc = await getDoc(doc(db, 'businesses', userId));
+    const businessDoc = await getDoc(doc(db, 'business', userId));
     
-    if (businessDoc.exists) {
+    if (businessDoc.exists()) {
       return businessDoc.data();
     }
     return null;

@@ -39,7 +39,7 @@ export default function Screen() {
                 
               </Text>
 
-        <TouchableOpacity   onPress={() => router.replace('/apps/Home')}   style={styles.playButton}>
+        <TouchableOpacity   onPress={() => router.replace('/Home')}   style={styles.playButton}>
       
           <Ionicons name="play" size={32} color="white" style={styles.playIcon} />
         </TouchableOpacity>
