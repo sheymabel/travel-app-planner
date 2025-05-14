@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   titleBold: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#A3B3F0FF',
     textAlign: 'center',
     marginBottom: 25,
     fontFamily: 'System',

@@ -6,9 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
-    "extra": {
-      "MAPTILER_KEY": "process.env.EXPO_PUBLIC_MAPTILER_KEY"
-    },
+
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
     "ios": {
@@ -16,7 +14,8 @@
       "supportsTablet": true
     },
     "android": {
-      "newArchEnabled":false,
+      "newArchEnabled":true,
+      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -25,7 +24,7 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -42,8 +41,10 @@
       "expo-font",
       "expo-web-browser"
     ],
+    
     "experiments": {
       "typedRoutes": true
     }
+    
   }
 }

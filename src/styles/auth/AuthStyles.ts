@@ -146,7 +146,7 @@ alignItems: 'center',
 marginHorizontal: 15,
 borderWidth: 1.5, // Slightly thicker border
 borderColor: Colors.gray[400], // Clearer border color
-shadowColor: "#000",
+shadowColor: "#A3B3F0FF",
 shadowOffset: { width: 0, height: 1 },
 shadowOpacity: 0.1,
 shadowRadius: 2,

@@ -18,17 +18,17 @@ const BusinessServices = () => <View><Text>Services</Text></View>;
 const BusinessReviews = () => <View><Text>Reviews</Text></View>;  
 const BusinessProfile = () => <View><Text>Profile</Text></View>;  
 
-// Custom button for the tab bar  
-const AddTabBarButton = ({ onPress }) => (  
-  <TouchableOpacity  
-    onPress={onPress}  
-    style={styles.addButtonContainer}  
-  >  
-    <View style={styles.addButton}>  
-      <Feather name="plus" size={30} color={Colors.white} />  
-    </View>  
-  </TouchableOpacity>  
-);  
+type AddTabBarButtonProps = {
+  onPress: () => void;
+};
+
+const AddTabBarButton: React.FC<AddTabBarButtonProps> = ({ onPress }) => (
+  <TouchableOpacity onPress={onPress} style={styles.addButtonContainer}>
+    <View style={styles.addButton}>
+      <Feather name="plus" size={30} color={Colors.white} />
+    </View>
+  </TouchableOpacity>
+);
 
 export default function BusinessTabsLayout() {  
   const navigation = useNavigation();  
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     top: -30,  
     justifyContent: 'center',  
     alignItems: 'center',  
-    shadowColor: "#000",  
+    shadowColor: "#A3B3F0FF",  
     shadowOffset: { width: 0, height: 1 },  
     shadowOpacity: 0.22,  
     shadowRadius: 2.22,  

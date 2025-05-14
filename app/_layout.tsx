@@ -3,7 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Link, Slot } from 'expo-router';  // Import Slot from expo-router
 
-export default function AppLayout({ children }) {
+export default function AppLayout({  }) {
   return (
     <View style={styles.container}>
     

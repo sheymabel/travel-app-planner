@@ -43,7 +43,7 @@ export default function SearchPlace() {
       />
       <Button title="Search" onPress={fetchPlaces} />
 
-      {loading && <ActivityIndicator size="large" color="#0000ff" />} {/* Loading indicator */}
+      {loading && <ActivityIndicator size="large" color="#A3B3F0FF0ff" />} {/* Loading indicator */}
 
       {error && <Text style={styles.error}>{error}</Text>}
 

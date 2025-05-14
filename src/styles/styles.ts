@@ -92,7 +92,7 @@ export const styles = StyleSheet.create({
       marginRight: 16,
       overflow: 'hidden', // Ensures image corners are rounded
       backgroundColor: '#f0f0f0', // Placeholder background
-      shadowColor: "#000",
+      shadowColor: "#A3B3F0FF",
       shadowOffset: {
         width: 0,
         height: 4,
@@ -149,7 +149,7 @@ export const styles = StyleSheet.create({
       marginRight: 16,
       overflow: 'hidden',
       backgroundColor: '#f0f0f0',
-      shadowColor: "#000",
+      shadowColor: "#A3B3F0FF",
       shadowOffset: {
         width: 0,
         height: 3,
@@ -195,7 +195,7 @@ export const styles = StyleSheet.create({
       borderTopColor: '#E5E5EA',
       paddingBottom: 15, // Padding for safe area bottom inset
       paddingTop: 10,
-      shadowColor: "#000", // Add shadow for elevation effect
+      shadowColor: "#A3B3F0FF", // Add shadow for elevation effect
       shadowOffset: {
         width: 0,
         height: -2, // Shadow upwards

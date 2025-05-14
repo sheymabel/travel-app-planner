@@ -42,20 +42,20 @@ export default function SignIn() {
   const formTranslateY = useSharedValue(30);
 
   useEffect(() => {
-    navigation.setOptions({
-      headerShown: true,
-      headerTransparent: true,
-      headerTitle: '',
-      headerLeft: () => (
-        <TouchableOpacity
-          onPress={() => router.replace('/scre/Screen1')}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color={Colors.black} />
-          <Text style={{ display: 'none' }}>Back Button</Text>
-        </TouchableOpacity>
-      ),
-    });
+  navigation.setOptions({
+    headerShown: true,
+    headerTransparent: true,
+    headerTitle: '',
+    headerLeft: () => (
+      <TouchableOpacity
+        onPress={() => router.replace('/scre/Screen1')}
+        style={{ marginTop: -40, padding: 8, borderRadius: 10 }} // Moved custom styling here
+      >
+        <Ionicons name="arrow-back" size={24} color={Colors.black} />
+        <Text style={{ display: 'none' }}>Back Button</Text>
+      </TouchableOpacity>
+    ),
+  });
 
     // Animation setup
     headerOpacity.value = withTiming(1, { duration: 500 });
@@ -335,47 +335,37 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gray[300],
   },
   dividerText: {
-    marginHorizontal: 16,
-    color: Colors.gray[500],
+    marginHorizontal: 12,
     fontSize: 14,
+    fontWeight: '500',
+    color: Colors.gray[500],
   },
   socialButtons: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: 10,
   },
   socialButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: Colors.gray[100],
+    marginHorizontal: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderRadius: 12,
+    borderColor: Colors.black,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 8,
   },
   signUpContainer: {
+    marginTop: 10,
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 'auto',
-    marginBottom: 24,
   },
   signUpText: {
-    color: Colors.gray[600],
     fontSize: 14,
+    fontWeight: '400',
   },
   signUpLink: {
-    color: Colors.primary,
     fontSize: 14,
-    fontWeight: '600',
-  },
-  backButton: {
-    marginLeft: 16,
-    padding: 8,
-    borderRadius: 8,
-    width: '60%',
+    fontWeight: '500',
+    color: Colors.primary,
   },
 });
-
-// Route configuration for Expo Router
-// @ts-ignore - Required for route validation
-SignIn.route = "/apps/auth/sign-in";

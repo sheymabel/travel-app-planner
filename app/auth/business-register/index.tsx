@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,17 +11,22 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../../constants/Colors';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import {  Timestamp } from 'firebase/firestore';
 import { db, auth } from '../../../configs/FirebaseConfig';
 import { setDoc, doc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { Category } from '../../../models/BusinnessOwner';
-
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+} from 'react-native-reanimated';
 export default function BusinessRegisterScreen() {
   const router = useRouter();
-
+const navigation = useNavigation();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -31,10 +36,35 @@ export default function BusinessRegisterScreen() {
   const [category, setCategory] = useState<Category>('other');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
+ const headerOpacity = useSharedValue(0);
+  const headerTranslateY = useSharedValue(-20);
+  const formOpacity = useSharedValue(0);
+  const formTranslateY = useSharedValue(30);
   const isFormValid =
     fullName && email && phone && address && password && description && category;
+ useEffect(() => {
+  navigation.setOptions({
+    headerShown: true,
+    headerTransparent: true,
+    headerTitle: '',
+    headerLeft: () => (
+      <TouchableOpacity
+        onPress={() => router.replace('/auth/sign-up')}
+        style={{ marginTop: -40, padding: 8, borderRadius: 10 }} // Moved custom styling here
+      >
+        <Ionicons name="arrow-back" size={24} color={Colors.black} />
+        <Text style={{ display: 'none' }}>Back Button</Text>
+      </TouchableOpacity>
+    ),
+  });
+   // Animation setup
+      headerOpacity.value = withTiming(1, { duration: 500 });
+      headerTranslateY.value = withSpring(0, { damping: 10 });
+      formOpacity.value = withTiming(1, { duration: 500 });
+      formTranslateY.value = withSpring(0, { damping: 10 });
+    }, []);
 
+ 
   function showToast(message: string, type: string = 'success') {
     Toast.show({
       type,
@@ -84,7 +114,7 @@ export default function BusinessRegisterScreen() {
 
       showToast('Business registered successfully!');
       setLoading(false);
-      router.replace('./auth/sign-in');
+      router.replace('/auth/sign-in');
     } catch (err: any) {
       console.error('Firebase error:', err);
       setLoading(false);
@@ -241,7 +271,7 @@ export default function BusinessRegisterScreen() {
         </TouchableOpacity>
 
         {/* Sign In Link */}
-        <TouchableOpacity onPress={() => router.replace('./auth/sign-in')}>
+        <TouchableOpacity onPress={() => router.replace('/auth/sign-in')}>
           <Text style={styles.signInLink}>
             Already have an account? <Text style={styles.linkText}>Sign In</Text>
           </Text>

@@ -11,10 +11,10 @@ export const Colors = {
   errorLight: '#fecaca',
   info: '#3b82f6',
   white: '#ffffff',
-  black: '#000000',
+  black: '#A3B3F0FF000',
   bgColor: '#ffffff',
   light: {
-    text: '#000000',
+    text: '#A3B3F0FF000',
     background: '#ffffff',
     tint: '#4f46e5',
     icon: '#4f46e5',
@@ -23,7 +23,7 @@ export const Colors = {
   },
   dark: {
     text: '#ffffff',
-    background: '#000000',
+    background: '#A3B3F0FF000',
     tint: '#818cf8',
     icon: '#818cf8',
     tabIconDefault: '#9ca3af',
