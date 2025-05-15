@@ -14,7 +14,7 @@ export default function AppLayout({  }) {
       
       <View >
         {/* Link to navigate to '/App' */}
-        <Link href="/App" >
+        <Link href="/app" >
         
         </Link>
       </View>

@@ -18,8 +18,8 @@ export default function App() {
         </Text>
 
       </View>
-      <View style={styles.backButton}>
-        <Text  onPress={() => router.push('/scre/Screen1')}
+      <View  style={styles.backButton} >
+        <Text  onPress={() => router.replace('/scre/Screen1')} 
         style={styles.buttonText}> Open</Text>
       </View>
     </View>
