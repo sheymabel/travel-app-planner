@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import BusinessServicesStyles from '../../src/styles/business-owner/BusinessServicesStyles.ts'; // Import styles
+import {styles} from '../../src/styles/business-owner/homebusin'; // Import styles
 import { Colors } from '../../constants/Colors';
-import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context'
+import { SafeAreaView } from 'react-native-safe-area-context'
 const services = [
   {
     id: 1,
@@ -41,11 +41,11 @@ const services = [
 
 const BusinessServicesScreen = () => {
   return (
-    <SafeAreaView style={BusinessServicesStyles.safeArea} edges={['top']}>
-      <ScrollView contentContainerStyle={BusinessServicesStyles.scrollContainer}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Header */}
-        <View style={BusinessServicesStyles.header}>
-          <Text style={BusinessServicesStyles.title}>Our Services</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Our Services</Text>
           <TouchableOpacity>
             <Feather name="search" size={24} color={Colors.gray[600]} />
           </TouchableOpacity>
@@ -55,50 +55,50 @@ const BusinessServicesScreen = () => {
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={BusinessServicesStyles.categoriesContainer}
+          contentContainerStyle={styles.categoriesContainer}
         >
           {['All', 'Hair', 'Nails', 'Makeup', 'Spa'].map((category, index) => (
             <TouchableOpacity 
               key={index}
               style={[ 
-                BusinessServicesStyles.categoryButton,
-                index === 0 && BusinessServicesStyles.activeCategory,
+                styles.categoryButton,
+                index === 0 && styles.activeCategory,
               ]}
             >
               <Text style={[ 
-                BusinessServicesStyles.categoryText,
-                index === 0 && BusinessServicesStyles.activeCategoryText,
+                styles.categoryText,
+                index === 0 && styles.activeCategoryText,
               ]}>
                 {category}
               </Text>
-              {index !== 0 && <Text style={BusinessServicesStyles.categoryCount}>({Math.floor(Math.random() * 15)})</Text>}
+              {index !== 0 && <Text style={styles.categoryCount}>({Math.floor(Math.random() * 15)})</Text>}
             </TouchableOpacity>
           ))}
         </ScrollView>
 
         {/* Services Grid */}
-        <View style={BusinessServicesStyles.servicesContainer}>
+        <View style={styles.servicesContainer}>
           {services.map((service) => (
-            <View key={service.id} style={BusinessServicesStyles.serviceCard}>
-              <TouchableOpacity style={BusinessServicesStyles.favoriteButton}>
+            <View key={service.id} style={styles.serviceCard}>
+              <TouchableOpacity style={styles.favoriteButton}>
                 <Feather name="heart" size={20} color={Colors.white} />
               </TouchableOpacity>
               
               <Image
                 source={{ uri: service.image }}
-                style={BusinessServicesStyles.serviceImage}
+                style={styles.serviceImage}
                 resizeMode="cover"
               />
               
-              <View style={BusinessServicesStyles.serviceDetails}>
-                <Text style={BusinessServicesStyles.serviceTitle}>{service.title}</Text>
-                <View style={BusinessServicesStyles.serviceMeta}>
-                  <Text style={BusinessServicesStyles.serviceDuration}>{service.duration}</Text>
-                  <Text style={BusinessServicesStyles.servicePrice}>{service.price}</Text>
+              <View style={styles.serviceDetails}>
+                <Text style={styles.serviceTitle}>{service.title}</Text>
+                <View style={styles.serviceMeta}>
+                  <Text style={styles.serviceDuration}>{service.duration}</Text>
+                  <Text style={styles.servicePrice}>{service.price}</Text>
                 </View>
-                <View style={BusinessServicesStyles.ratingContainer}>
+                <View style={styles.ratingContainer}>
                   <Feather name="star" size={16} color={Colors.black} />
-                  <Text style={BusinessServicesStyles.ratingText}>{service.rating}</Text>
+                  <Text style={styles.ratingText}>{service.rating}</Text>
                 </View>
               </View>
             </View>
@@ -106,7 +106,7 @@ const BusinessServicesScreen = () => {
         </View>
 
         {/* Floating Action Button */}
-        <TouchableOpacity style={BusinessServicesStyles.filterButton}>
+        <TouchableOpacity style={styles.filterButton}>
           <Feather name="sliders" size={24} color={Colors.white} />
         </TouchableOpacity>
       </ScrollView>

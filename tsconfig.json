@@ -26,5 +26,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "app/screens/Screen1.jsx", "app/screens/Screen2.jsx", "app/screens/Screen3.jsx", "app/_layout.jsx", "app/screens/_layout.jsx", "app/Trip/Serch-place.tsx"  ]
 }

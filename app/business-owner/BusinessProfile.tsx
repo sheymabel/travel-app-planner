@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, Alert, Modal, Pressable, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons, Feather, AntDesign, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons,  Feather, AntDesign, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { getAuth, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -183,7 +183,7 @@ const ProfileScreen = () => {
           <Text style={styles.ownerName}>{userData.name}</Text>
 
           <TouchableOpacity
-            onPress={() => router.replace('/Profile/EditProfilebuss')}
+            onPress={() => router.replace('/Profile/Afficherdata')}
             style={styles.editButton}
           >
             <Text style={styles.editButtonText}>{t('editProfile')}</Text>

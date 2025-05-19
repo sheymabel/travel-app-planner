@@ -6,16 +6,12 @@ import { Link, Slot } from 'expo-router';  // Import Slot from expo-router
 export default function AppLayout({ }) {
   return (
     <View style={styles.container}>
-    
-      {/* Slot renders the current page content based on navigation */}
       <View style={styles.body}>
-        <Slot /> {/* Slot will render the current page content */}
+        <Slot /> 
       </View>
       
       <View >
-        {/* Link to navigate to '/App' */}
-        <Link href="/apps/Home" >
-        
+        <Link href="/Home" >
         </Link>
       </View>
     </View>

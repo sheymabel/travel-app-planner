@@ -108,7 +108,7 @@ const navigation = useNavigation();
         description,
         category,
         password,
-        role: 'business',
+
         createdAt: Timestamp.now(),
       });
 

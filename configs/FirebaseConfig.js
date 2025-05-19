@@ -4,22 +4,17 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
-// Your Firebase configuration
+
 const firebaseConfig = {
-  apiKey: "AIzaSyAZAUUQmG2R8Xbkp3VBSkO1-9c-e1tOx9c",
-  authDomain: "application-41d5f.firebaseapp.com",
-  databaseURL: "https://application-41d5f-default-rtdb.firebaseio.com",
-  projectId: "application-41d5f",
-  storageBucket: "application-41d5f.firebasestorage.app",
-  messagingSenderId: "1080187857593",
-  appId: "1:1080187857593:web:f14288987063bba7420968",
-  measurementId: "G-NTRQLD2WFB"
+  apiKey: "AIzaSyDs5-O06Eo-QnXO0YRerUoiUWHG8_k9-kA",
+  authDomain: "tourism-new-38561.firebaseapp.com",
+  projectId: "tourism-new-38561",
+  storageBucket: "tourism-new-38561.firebasestorage.app",
+  messagingSenderId: "506934421757",
+  appId: "1:506934421757:web:02a79f5eb5391010fe7694"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Initialize Auth with AsyncStorage persistence
 const auth = initializeAuth(app)//,
   //{
   //persistence: getReactNativePersistence(ReactNativeAsyncStorage)

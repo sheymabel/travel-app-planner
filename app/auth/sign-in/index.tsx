@@ -48,7 +48,7 @@ export default function SignIn() {
     headerTitle: '',
     headerLeft: () => (
       <TouchableOpacity
-        onPress={() => router.replace('/scre/Screen1')}
+        onPress={() => router.replace('/screens/Screen1')}
         style={{ marginTop: -40, padding: 8, borderRadius: 10 }} // Moved custom styling here
       >
         <Ionicons name="arrow-back" size={24} color={Colors.black} />
@@ -125,11 +125,10 @@ export default function SignIn() {
       }
 
       if (isTraveler) {
-        await router.replace('/traveler/trips');
+        await router.replace('/Trip/Serch-place');
       } else {
         await router.replace('/business-owner/HomeBusiness');
       }
-
       showToast('Sign in successful');
     } catch (error: any) {
       let msg = 'Something went wrong';
@@ -148,7 +147,7 @@ export default function SignIn() {
     >
       <ScrollView contentContainerStyle={styles.inner}>
         <TouchableOpacity
-          onPress={() => router.replace('/App')}
+          onPress={() => router.replace('/screens/Screen1')}
           style={{ marginTop: -40, padding: 8, borderRadius: 10 }}
         >
           <Ionicons name="arrow-back" size={24} color="black" />
