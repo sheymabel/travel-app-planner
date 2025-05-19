@@ -183,7 +183,7 @@ const ProfileScreen = () => {
           <Text style={styles.ownerName}>{userData.name}</Text>
 
           <TouchableOpacity
-            onPress={() => router.replace('/Profile/Afficherdata')}
+            onPress={() => router.replace('/ProfileBuisness/EditProfilebuss')}
             style={styles.editButton}
           >
             <Text style={styles.editButtonText}>{t('editProfile')}</Text>
@@ -197,7 +197,6 @@ const ProfileScreen = () => {
         <View style={styles.menuGroup}>{settingsItems.map(renderMenuItem)}</View>
         {activeSection && renderSectionContent()}
         <View style={styles.divider} />
-
         <View style={styles.menuGroup}>{appItems.map(renderMenuItem)}</View>
 
         <Text style={styles.appVersion}>{t('appVersion')} 2.3</Text>

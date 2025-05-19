@@ -3,6 +3,8 @@ import { View, Text,StyleSheet,TouchableOpacity } from 'react-native';
 import SearchResult from '../../components/MyTrips/SearchResult';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/Colors';
+//import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+
  const router = useRouter();
 
   const handleNavigation = () => {
@@ -21,6 +23,8 @@ export const SearchPlace = () => {
        <TouchableOpacity style={styles.backButton} onPress={handleNavigation}>
               <Text style={styles.buttonText}>Start a new trip</Text>
             </TouchableOpacity>
+           
+    
     </View>
   );
 };

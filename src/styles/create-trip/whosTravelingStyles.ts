@@ -2,15 +2,19 @@ import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
   container: {
+marginTop:20,
+    alignContent:'center',
     flex: 1,
-    backgroundColor: '#f8fafc',
     paddingHorizontal: 20,
-    paddingTop: 40,
+    paddingTop: 50,
   },
   header: {
-    marginBottom: 30,
+    marginTop:40,
+    alignContent:'center',
+    marginBottom: 56,
   },
   title: {
+    marginTop:40,
     fontSize: 28,
     fontWeight: '800',
     color: '#1e293b',
@@ -21,9 +25,12 @@ export default StyleSheet.create({
     color: '#64748b',
   },
   optionsContainer: {
-    paddingBottom: 100,
+        marginTop:10,
+    paddingBottom: 90,
   },
   card: {
+    marginTop:19,
+    alignContent:'center',
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 20,

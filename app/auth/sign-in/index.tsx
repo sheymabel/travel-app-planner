@@ -49,7 +49,7 @@ export default function SignIn() {
     headerLeft: () => (
       <TouchableOpacity
         onPress={() => router.replace('/screens/Screen1')}
-        style={{ marginTop: -40, padding: 8, borderRadius: 10 }} // Moved custom styling here
+        style={{ marginTop: -50, padding: 8, borderRadius: 10 }} // Moved custom styling here
       >
         <Ionicons name="arrow-back" size={24} color={Colors.black} />
         <Text style={{ display: 'none' }}>Back Button</Text>

@@ -5,7 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../configs/FirebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import styles from './../../src/styles/business-owner/editProfilScreenStyles';
+import styles from '../../src/styles/business-owner/editProfilScreenStyles';
 
 interface BusinessData {
   name: string;
@@ -99,7 +99,7 @@ const AfficherBusinessProfile = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Business Profile</Text>
         <TouchableOpacity
-          onPress={() => router.replace('/Profile/EditProfilebuss')}
+          onPress={() => router.replace('/ProfileBuisness/EditProfilebuss')}
           style={styles.editButton}
         >
           <Text style={styles.editButtonText}>Edit</Text>

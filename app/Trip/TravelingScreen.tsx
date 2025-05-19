@@ -1,7 +1,31 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Animated, Easing } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons, FontAwesome, FontAwesome5, Ionicons } from '@expo/vector-icons';
+import {
+  MaterialIcons,
+  FontAwesome,
+  FontAwesome5,
+  Ionicons,
+} from '@expo/vector-icons';
+import { Colors } from '../../constants/Colors';
+import { getAuth } from 'firebase/auth';
+import {
+  doc,
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  serverTimestamp,
+  query,
+  where,
+} from 'firebase/firestore';
+import { db } from '../../configs/FirebaseConfig';
 import styles from '../../src/styles/create-trip/whosTravelingStyles';
 
 const travelOptions = [
@@ -9,178 +33,116 @@ const travelOptions = [
     key: 'solo',
     title: 'Just Me',
     description: 'A sole traveler in exploration',
-    icon: (props: any) => <MaterialIcons name="person-outline" {...props} />,
-    color: '#3b82f6', // blue
+    icon: <MaterialIcons name="person-outline" size={32} color="#3b82f6" />,
+    color: '#3b82f6',
   },
   {
     key: 'couple',
     title: 'A Couple',
     description: 'Two travelers in tandem',
-    icon: (props: any) => <FontAwesome name="heart" {...props} />,
-    color: '#ef4444', // red
+    icon: <FontAwesome name="heart" size={32} color="#ef4444" />,
+    color: '#ef4444',
   },
   {
     key: 'family',
     title: 'Family',
     description: 'A group of fun loving adventurers',
-    icon: (props: any) => <FontAwesome5 name="users" {...props} />,
-    color: '#10b981', // green
+    icon: <FontAwesome5 name="users" size={32} color="#10b981" />,
+    color: '#10b981',
   },
   {
     key: 'friends',
     title: 'Friends',
     description: 'A bunch of thrill-seekers',
-    icon: (props: any) => <Ionicons name="boat-outline" {...props} />,
-    color: '#f59e0b', // amber
+    icon: <Ionicons name="boat-outline" size={32} color="#f59e0b" />,
+    color: '#f59e0b',
   },
 ];
 
 export default function WhosTravelingScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   const router = useRouter();
-  
-  // Animation values
-  const scaleValues = travelOptions.reduce((acc, option) => {
-    acc[option.key] = new Animated.Value(1);
-    return acc;
-  }, {} as Record<string, Animated.Value>);
-  
-  const buttonOpacity = new Animated.Value(0);
-  const buttonTranslateY = new Animated.Value(20);
+  const hasSaved = useRef(false);
 
-  const handlePressIn = (key: string) => {
-    Animated.spring(scaleValues[key], {
-      toValue: 0.95,
-      useNativeDriver: true,
-    }).start();
-  };
+  useEffect(() => {
+    const saveTrip = async () => {
+      if (!selected || hasSaved.current) return;
 
-  const handlePressOut = (key: string) => {
-    Animated.spring(scaleValues[key], {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
-  };
+      try {
+        const auth = getAuth();
+        const user = auth.currentUser;
 
-  const handleSelect = (key: string) => {
-    setSelected(key);
-    
-    if (!selected) {
-      Animated.parallel([
-        Animated.timing(buttonOpacity, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(buttonTranslateY, {
-          toValue: 0,
-          duration: 300,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  };
+        if (!user) {
+          Alert.alert('Error', 'You must be logged in to continue');
+          return;
+        }
 
-  const handleContinue = () => {
-    if (selected) {
-      Animated.sequence([
-        Animated.spring(buttonTranslateY, {
-          toValue: -10,
-          useNativeDriver: true,
-        }),
-        Animated.spring(buttonTranslateY, {
-          toValue: 0,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        router.push('/');
-      });
-    }
-  };
+        const tripsRef = collection(db, 'Travler', user.uid, 'trip');
+
+        // Check if a trip already exists
+        const q = query(tripsRef, where('userId', '==', user.uid));
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+          // Trip exists – update the first one found
+          const existingTripDoc = snapshot.docs[0];
+          await updateDoc(doc(tripsRef, existingTripDoc.id), {
+            travelType: selected,
+          });
+        } else {
+          // No trip exists – add a new one
+          await addDoc(tripsRef, {
+            userId: user.uid,
+            travelType: selected,
+            createdAt: serverTimestamp(),
+          });
+        }
+
+        hasSaved.current = true;
+        router.replace('/Trip/select-dates');
+      } catch (error) {
+        Alert.alert('Error', 'Failed to save trip information');
+        console.error('Firestore error:', error);
+      }
+    };
+
+    saveTrip();
+  }, [selected]);
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Who's Traveling</Text>
-        <Text style={styles.subtitle}>Choose your travelers</Text>
-      </View>
+      <TouchableOpacity
+        onPress={() => router.replace('/Trip/Serch-place')}
+        style={{ marginTop: -40, padding: 8, borderRadius: 10 }}
+      >
+        <Ionicons name="arrow-back" size={24} color={Colors.black} />
+        <Text style={{ display: 'none' }}>Back Button</Text>
+      </TouchableOpacity>
 
-      <ScrollView 
-        contentContainerStyle={styles.optionsContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {travelOptions.map((option) => {
-          const Icon = option.icon;
-          const isSelected = selected === option.key;
-          
-          return (
-            <Animated.View
-              key={option.key}
-              style={[
-                {
-                  transform: [{ scale: scaleValues[option.key] }],
-                },
-              ]}
-            >
-              <TouchableOpacity
-                onPressIn={() => handlePressIn(option.key)}
-                onPressOut={() => handlePressOut(option.key)}
-                onPress={() => handleSelect(option.key)}
-                activeOpacity={0.7}
-                style={[
-                  styles.card,
-                  isSelected && styles.selectedCard,
-                  isSelected && { borderColor: option.color },
-                ]}
-              >
-                <View style={styles.cardContent}>
-                  <View>
-                    <Text style={styles.cardTitle}>{option.title}</Text>
-                    <Text style={styles.cardDesc}>{option.description}</Text>
-                  </View>
-                  <Icon 
-                    size={32} 
-                    color={isSelected ? option.color : '#666'} 
-                    solid={isSelected && option.key === 'couple'}
-                  />
-                </View>
-                
-                {isSelected && (
-                  <Animated.View 
-                    style={[
-                      styles.selectionIndicator,
-                      { backgroundColor: option.color },
-                    ]}
-                  />
-                )}
-              </TouchableOpacity>
-            </Animated.View>
-          );
-        })}
+      <Text style={styles.title}>Who's Traveling</Text>
+      <Text style={styles.subtitle}>Choose your travelers</Text>
+
+      <ScrollView contentContainerStyle={styles.optionsContainer}>
+        {travelOptions.map((option) => (
+          <TouchableOpacity
+            key={option.key}
+            onPress={() => setSelected(option.key)}
+            style={[
+              styles.card,
+              selected === option.key && styles.selectedCard,
+              selected === option.key && { borderColor: option.color },
+            ]}
+          >
+            <View style={styles.cardContent}>
+              <View>
+                <Text style={styles.cardTitle}>{option.title}</Text>
+                <Text style={styles.cardDesc}>{option.description}</Text>
+              </View>
+              {option.icon}
+            </View>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
-      
-      <Animated.View
-        style={[
-          styles.buttonContainer,
-          {
-            opacity: buttonOpacity,
-            transform: [{ translateY: buttonTranslateY }],
-          },
-        ]}
-      >
-        <TouchableOpacity
-          style={[
-            styles.continueButton, 
-            !selected && styles.disabledButton,
-            { backgroundColor: selected ? travelOptions.find(o => o.key === selected)?.color : '#ccc' }
-          ]}
-          disabled={!selected}
-          onPress={handleContinue}
-        >
-          <Text style={styles.buttonText}>Continue</Text>
-        </TouchableOpacity>
-      </Animated.View>
     </View>
   );
 }
