@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "travel-app-planner",
+    "slug": "travel-app-planner",
+    "version": "1.0.0",
+      "apiUrl": "http://192.168.1.10:5000",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "myapp",
+
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
+    "ios": {
+      "newArchEnabled":false,
+      "supportsTablet": true
+    },
+    "android": {
+      "newArchEnabled":true,
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.travelappplanner"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "server",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+     
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser"
+    ],
+    
+    "experiments": {
+      "typedRoutes": true
+    }
+    
+  }
+}
