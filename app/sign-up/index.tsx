@@ -116,10 +116,6 @@ const AuthPath='/sign-in';
           fullName,
           email,
           password,
-          
-          
-          //role: 'Traveler',
-          createdAt: new Date(),
         };
         await setDoc(doc(db, 'Travler', user.uid), userDoc);
       } else if (selectedRole === 'business') {
@@ -128,8 +124,6 @@ const AuthPath='/sign-in';
           fullName,
           email,
           password,
-        //role: 'business',
-          createdAt: new Date(),
         };
         await setDoc(doc(db, 'business', user.uid), userDoc);
         //redirectPath = '/auth/businessRegister'; // This can trigger full business setup

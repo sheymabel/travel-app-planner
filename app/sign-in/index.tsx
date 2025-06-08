@@ -125,7 +125,7 @@ export default function SignIn() {
       }
 
       if (isTraveler) {
-        await router.replace('/Trip/Serch-place');
+        await router.replace('../Trip/TestTrip');
       } else {
         await router.replace('/business-owner/HomeBusiness');
       }
