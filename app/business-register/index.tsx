@@ -41,7 +41,7 @@ export default function businessRegisterScreen() {
   const headerTranslateY = useSharedValue(-20);
   const formOpacity = useSharedValue(0);
   const formTranslateY = useSharedValue(30);
-  
+
   const isFormValid =
     fullName && email && phone && address && password && description && category;
 
@@ -60,7 +60,7 @@ export default function businessRegisterScreen() {
         </TouchableOpacity>
       ),
     });
-    
+
     // Animation setup
     headerOpacity.value = withTiming(1, { duration: 500 });
     headerTranslateY.value = withSpring(0, { damping: 10 });
@@ -148,12 +148,12 @@ export default function businessRegisterScreen() {
   return (
     <View style={styles.container}>
       <TouchableOpacity
-              onPress={() => router.replace('/sign-in')}
-              style={{ marginTop:20, padding: 10 }}
-            >
-              <Ionicons name="arrow-back" size={24} color="black" />
-            </TouchableOpacity>
-      <ScrollView 
+        onPress={() => router.replace('/sign-in')}
+        style={{ marginTop: 20, padding: 10 }}
+      >
+        <Ionicons name="arrow-back" size={24} color="black" />
+      </TouchableOpacity>
+      <ScrollView
         contentContainerStyle={styles.inner}
         keyboardShouldPersistTaps="handled"
       >
@@ -178,8 +178,8 @@ export default function businessRegisterScreen() {
                 placeholderTextColor={Colors.gray[400]}
                 autoCapitalize="words"
               />
+              </View>
             </View>
-          </View>
 
           {/* Email Input */}
           <View style={styles.inputGroup}>
@@ -276,28 +276,28 @@ export default function businessRegisterScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Category</Text>
             <View style={styles.pickerContainer}>
-             <Picker
-  selectedValue={category}
-  onValueChange={(value) => setCategory(value)}
-  style={styles.picker}
-  dropdownIconColor={Colors.gray[600]}
->
- <Picker.Item label="Handmade Crafts" value="handmade_crafts" />
-<Picker.Item label="Traditional Clothing" value="traditional_clothing" />
-<Picker.Item label="Natural Cosmetics" value="natural_cosmetics" />
-<Picker.Item label="Leather Goods" value="leather_goods" />
-<Picker.Item label="Jewelry & Accessories" value="artisan_jewelry" />
-<Picker.Item label="Local Gastronomy" value="local_gastronomy" />
-<Picker.Item label="Artistic Creations" value="artistic_creations" />
-<Picker.Item label="Ceramics & Pottery" value="ceramics_pottery" />
-<Picker.Item label="Woven Goods" value="woven_goods" />
-<Picker.Item label="Carpentry & Woodwork" value="woodwork" />
-<Picker.Item label="Cultural Heritage Items" value="cultural_heritage" />
+              <Picker
+                selectedValue={category}
+                onValueChange={(value) => setCategory(value)}
+                style={styles.picker}
+                dropdownIconColor={Colors.gray[600]}
+              >
+                <Picker.Item label="Handmade Crafts" value="handmade_crafts" />
+                <Picker.Item label="Traditional Clothing" value="traditional_clothing" />
+                <Picker.Item label="Natural Cosmetics" value="natural_cosmetics" />
+                <Picker.Item label="Leather Goods" value="leather_goods" />
+                <Picker.Item label="Jewelry & Accessories" value="artisan_jewelry" />
+                <Picker.Item label="Local Gastronomy" value="local_gastronomy" />
+                <Picker.Item label="Artistic Creations" value="artistic_creations" />
+                <Picker.Item label="Ceramics & Pottery" value="ceramics_pottery" />
+                <Picker.Item label="Woven Goods" value="woven_goods" />
+                <Picker.Item label="Carpentry & Woodwork" value="woodwork" />
+                <Picker.Item label="Cultural Heritage Items" value="cultural_heritage" />
 
-  
-  {/* General */}
-  <Picker.Item label="Other" value="other" />
-</Picker>
+
+                {/* General */}
+                <Picker.Item label="Other" value="other" />
+              </Picker>
             </View>
           </View>
 
@@ -368,6 +368,14 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 20,
   },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.gray[300],
+    borderRadius: 12,
+    paddingHorizontal: 16,
+  },
   label: {
     fontSize: 16,
     fontWeight: '600',
@@ -377,13 +385,16 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.gray[100],
+    borderWidth: 1,
+    borderColor: Colors.gray[300],
     borderRadius: 10,
-    paddingHorizontal: 15,
+    paddingHorizontal: 10,
+
   },
   input: {
     flex: 1,
     height: 50,
+    outlineWidth: 0,
     paddingLeft: 10,
     color: Colors.gray[800],
     fontSize: 16,
@@ -407,7 +418,11 @@ const styles = StyleSheet.create({
   picker: {
     height: 50,
     width: '100%',
-    color: Colors.gray[800],
+    color: Colors.gray[600],
+    borderColor:Colors.gray[300],
+    borderWidth:1,
+    borderRadius:10,
+    paddingHorizontal: 10,
   },
   passwordHint: {
     fontSize: 12,

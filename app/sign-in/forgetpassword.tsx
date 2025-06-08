@@ -135,7 +135,7 @@ export default function ForgetPassword() {
 
       <View style={styles.inner}>
         <View style={styles.header}>
-        <Text style={styles.title}>Reset Password</Text>
+          <Text style={styles.title}>Reset Password</Text>
         </View>
 
         <View style={styles.tabContainer}>
@@ -165,7 +165,7 @@ export default function ForgetPassword() {
                 <Ionicons name="mail-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                   placeholderTextColor={Colors.gray[400]} 
+                  placeholderTextColor={Colors.gray[400]}
                   placeholder="Please Enter your Email"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -191,23 +191,29 @@ export default function ForgetPassword() {
             <Text style={styles.subtitle}>Enter the reset code and your new password.</Text>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Reset Code</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter reset code"
-                autoCapitalize="none"
-                value={resetCode}
-                onChangeText={setResetCode}
-              />
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholderTextColor={Colors.gray[400]}
+                  placeholder="Enter reset code"
+                  autoCapitalize="none"
+                  value={resetCode}
+                  onChangeText={setResetCode}
+                />
+              </View>
             </View>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>New Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter new password"
-                secureTextEntry
-                value={newPassword}
-                onChangeText={setNewPassword}
-              />
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholderTextColor={Colors.gray[400]}
+                  placeholder="Enter new password"
+                  secureTextEntry
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                />
+              </View>
             </View>
 
             <TouchableOpacity
@@ -233,7 +239,7 @@ export default function ForgetPassword() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   inner: { padding: 20, marginTop: 40 },
-  title: {    fontSize: 26, fontWeight: 'bold', marginBottom: 20, color: Colors.primary, },
+  title: { fontSize: 26, fontWeight: 'bold', marginBottom: 20, color: Colors.primary, },
   subtitle: { fontSize: 16, marginBottom: 20 },
   inputContainer: { marginBottom: 20 },
   label: {
@@ -284,7 +290,7 @@ const styles = StyleSheet.create({
   activeTab: {
     borderColor: Colors.primary,
   },
-   header: {
+  header: {
     alignItems: 'center',
 
     paddingBottom: 30,

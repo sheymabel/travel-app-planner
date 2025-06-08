@@ -1,156 +1,311 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, ScrollView, ImageBackground, TouchableOpacity, Dimensions, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  TextInput,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+} from 'react-native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { styles } from '../../src/styles/styles';
+import { collection, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { db } from '../../configs/FirebaseConfig';
 import { useRouter } from 'expo-router';
-import { useNavigation } from '@react-navigation/native'; // Import navigation hook
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+interface City {
+  id: string;
+  city: string;
+  code: string;
+  country: string;
+  delegation: string;
+  governorate: string;
+  latitude: string;
+  longitude: string;
+}
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.55;
-const SMALL_CARD_WIDTH = width * 0.4;
-
-  
-const popularLocations1 = [
-  { id: '1', name: 'Monastir', price: 689, rating: 4.9, image: 'https://images.unsplash.com/photo-1581015102891-1a16854854a7?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '2', name: 'Tunis', price: 726, rating: null, image: 'https://images.unsplash.com/photo-1583253066701-c4f6e7f5439e?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '3', name: 'Sousse', price: 550, rating: 4.7, image: 'https://images.unsplash.com/photo-1604969774433-86bc8f4a1b5d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-];
-
-const popularLocations2 = [
-  { id: '1', name: 'Bizerte', locations: 16, image: 'https://images.unsplash.com/photo-1604580863011-f41c0f5b8e1d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '2', name: 'Aïn Draham', locations: 22, image: 'https://images.unsplash.com/photo-1517479149777-5f3b15118e8c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '3', name: 'Sidi Bou Said', locations: 12, image: 'https://images.unsplash.com/photo-1580502377239-07ff586c056a?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-];
-
-export default function HomeScreen() {
+export default function SearchPlace() {
+  const [searchText, setSearchText] = useState('');
+  const [cities, setCities] = useState<City[]>([]);
   const router = useRouter();
-  const navigation = useNavigation();
-useEffect(() => {
-  navigation.setOptions({
-    headerShown: false,
-  });
-}, []);
-const checkLoginAndNavigate = async (path: '/sign-in' | '/sign-up' ) => {
-  const token = await AsyncStorage.getItem('token');
-  if (token) {
-    router.replace(path); // Navigate to destination if logged in
-  } else {
-    router.replace('/sign-in'); // Otherwise go to login
-  }
-};
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-const handlePress = () => {
-  Alert.alert(
-    "Access Restricted",
-    "You must be signed in to access this feature.",
-    [
-      { text: "Cancel", style: "cancel" },
-      { text: "Sign In", onPress: () => router.replace('/sign-in') },
-    ]
-  );
-};
+  useEffect(() => {
+    async function fetchCities() {
+      if (searchText.trim().length === 0) {
+        setCities([]);
+        return;
+      }
+
+      try {
+        const citiesRef = collection(db, 'cities');
+        const snapshot = await getDocs(citiesRef);
+        const results: City[] = [];
+
+        snapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
+          const data = doc.data();
+          if (data.city?.toLowerCase().includes(searchText.toLowerCase())) {
+            results.push({
+              id: doc.id,
+              city: data.city,
+              code: data.code,
+              country: data.country,
+              delegation: data.delegation,
+              governorate: data.governorate,
+              latitude: data.latitude,
+              longitude: data.longitude,
+            });
+          }
+        });
+
+        setCities(results);
+      } catch (error) {
+        console.error('Error fetching cities:', error);
+        setCities([]);
+      }
+    }
+
+    fetchCities();
+  }, [searchText]);
+
+  const checkLoginAndNavigate = (route: string) => {
+    if (isLoggedIn) {
+      router.replace('/sign-in');
+    } else {
+      router.push('/sign-in');
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-      
-        <Text style={styles.header}>Nordic scenery</Text>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBox}>
-            <Feather name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
-            <TextInput
-              placeholder="Search"
-              placeholderTextColor="#9CA3AF"
-              style={styles.searchInput}
-            />
-          </View>
+      {/* Header Section */}
+      <View style={styles.header}>
+        <Text style={styles.title}>City Explorer</Text>
+        <Text style={styles.subtitle}>Find locations worldwide</Text>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBox}>
+          <Feather name="search" size={22} color="#6B7280" />
+          <TextInput
+            placeholder="Search city or region..."
+            placeholderTextColor="#9CA3AF"
+            style={styles.searchInput}
+            value={searchText}
+            onChangeText={setSearchText}
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
           <TouchableOpacity style={styles.filterButton}>
-            <Ionicons name="options-outline" size={24} color="white" />
+            <MaterialCommunityIcons name="tune" size={24} color="#3B82F6" />
           </TouchableOpacity>
         </View>
+      </View>
 
-        <Text style={styles.sectionTitle}>Popular locations</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalScroll}
-          snapToInterval={CARD_WIDTH + 16}
-          decelerationRate="fast"
-        >
-          {popularLocations1.map((location) => (
-            <TouchableOpacity key={location.id} style={[styles.card, { width: CARD_WIDTH }]}>
-              <ImageBackground
-                source={{ uri: location.image }}
-                style={styles.cardImage}
-                imageStyle={styles.cardImageStyle}
-              >
-                <View style={styles.cardOverlay}>
-                  <Text style={styles.cardTitle}>{location.name}</Text>
-                  <View style={styles.cardBottomRow}>
-                    <Text style={styles.cardPrice}>from ${location.price}</Text>
-                    {location.rating && (
-                      <View style={styles.cardRating}>
-                        <Text style={styles.cardRatingText}>{location.rating}</Text>
-                        <Ionicons name="star" size={14} color="#FFD700" />
-                      </View>
-                    )}
-                  </View>
+      {/* Results Section */}
+      <ScrollView style={styles.resultsContainer}>
+        {cities.length > 0 ? (
+          cities.map(city => (
+            <View key={city.id} style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.locationIcon}>
+                  <Ionicons name="location-sharp" size={20} color="#3B82F6" />
                 </View>
-              </ImageBackground>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                <View>
+                  <Text style={styles.cityName}>{city.city}</Text>
+                  <Text style={styles.countryText}>{city.country}</Text>
+                </View>
+                <Text style={styles.codeBadge}>{city.code}</Text>
+              </View>
 
-        <Text style={styles.sectionTitle}>Popular locations</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalScroll}
-          snapToInterval={SMALL_CARD_WIDTH + 16}
-          decelerationRate="fast"
-        >
-          {popularLocations2.map((location) => (
-            <TouchableOpacity key={location.id} style={[styles.smallCard, { width: SMALL_CARD_WIDTH }]}>
-              <ImageBackground
-                source={{ uri: location.image }}
-                style={styles.smallCardImage}
-                imageStyle={styles.smallCardImageStyle}
-              >
-                <View style={styles.smallCardOverlay}>
-                  <Text style={styles.smallCardTitle}>{location.name}</Text>
-                  <Text style={styles.smallCardLocations}>{location.locations} locations</Text>
+              <View style={styles.detailsGrid}>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Governorate</Text>
+                  <Text style={styles.detailValue}>{city.governorate}</Text>
                 </View>
-              </ImageBackground>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Delegation</Text>
+                  <Text style={styles.detailValue}>{city.delegation}</Text>
+                </View>
+              </View>
+            </View>
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Feather name="map" size={48} color="#E5E7EB" />
+            <Text style={styles.emptyText}>Search to discover cities</Text>
+          </View>
+        )}
       </ScrollView>
 
-      {/* Bottom Navigation with router navigation */}
+      {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} >
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => checkLoginAndNavigate('Home')}
+        >
           <Ionicons name="home" size={26} color="#007AFF" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem} onPress={() => checkLoginAndNavigate('/sign-in')}>
-  <MaterialCommunityIcons name="image-multiple-outline" size={26} color="#8E8E93" />
-</TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => checkLoginAndNavigate('Gallery')}
+        >
+          <MaterialCommunityIcons
+            name="image-multiple-outline"
+            size={26}
+            color="#8E8E93"
+          />
+        </TouchableOpacity>
 
-<TouchableOpacity style={styles.navItem} onPress={() => checkLoginAndNavigate('/sign-in')}>
-  <MaterialCommunityIcons name="compass-outline" size={26} color="#8E8E93" />
-</TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => checkLoginAndNavigate('Explore')}
+        >
+          <MaterialCommunityIcons
+            name="compass-outline"
+            size={26}
+            color="#8E8E93"
+          />
+        </TouchableOpacity>
 
-<TouchableOpacity style={styles.navItem} onPress={() => checkLoginAndNavigate('/sign-in')}>
-  <MaterialCommunityIcons name="account-outline" size={26} color="#8E8E93" />
-</TouchableOpacity>
-
-
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => checkLoginAndNavigate('Profile')}
+        >
+          <MaterialCommunityIcons
+            name="account-outline"
+            size={26}
+            color="#8E8E93"
+          />
+        </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 24,
+    paddingBottom: 12,
+    backgroundColor: '#F9FAFB',
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  searchContainer: {
+    paddingHorizontal: 24,
+    marginVertical: 12,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  searchInput: {
+    flex: 1,
+    marginHorizontal: 8,
+    fontSize: 16,
+    color: '#111827',
+  },
+  filterButton: {
+    marginLeft: 8,
+  },
+  resultsContainer: {
+    paddingHorizontal: 16,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  locationIcon: {
+    marginRight: 12,
+  },
+  cityName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  countryText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  codeBadge: {
+    marginLeft: 'auto',
+    backgroundColor: '#EFF6FF',
+    color: '#3B82F6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  detailsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  detailItem: {
+    width: '48%',
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: '#9CA3AF',
+  },
+  detailValue: {
+    fontSize: 14,
+    color: '#111827',
+    fontWeight: '500',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#9CA3AF',
+    marginTop: 12,
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+  },
+  navItem: {
+    alignItems: 'center',
+  },
+});

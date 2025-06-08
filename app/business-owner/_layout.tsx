@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';  
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';  
 import { Tabs } from 'expo-router';  
-import { Ionicons, Feather } from '@expo/vector-icons';  
+import { Ionicons, Feather, MaterialIcons, FontAwesome } from '@expo/vector-icons';  
 import { useNavigation } from 'expo-router';  
 
 // Define Colors  
@@ -13,10 +13,6 @@ const Colors = {
 };  
 
 // Sample components for each tab  
-const Homebusiness = () => <View><Text>Home</Text></View>;  
-const businessServices = () => <View><Text>Services</Text></View>;  
-const businessReviews = () => <View><Text>Reviews</Text></View>;  
-const businessProfile = () => <View><Text>Profile</Text></View>;  
 
 type AddTabBarButtonProps = {
   onPress: () => void;
@@ -40,6 +36,10 @@ export default function businessTabsLayout() {
       headerTitle: '',  
     });  
   }, [navigation]);  
+const Homebusiness = () => <View><Text>Home</Text></View>;  
+const businessServices = () => <View><Text>Services</Text></View>;  
+const businessReviews = () => <View><Text>Reviews</Text></View>;  
+const businessProfile = () => <View><Text>Profile</Text></View>;  
 
   return (  
     <Tabs  
@@ -64,13 +64,13 @@ export default function businessTabsLayout() {
       <Tabs.Screen  
         name="Homebusiness"  
         options={{  
-          tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={26} color={color} />,  
+          tabBarIcon: ({ color }) => <Ionicons name="home" size={26} color={color} />,  
         }}  
       />  
       <Tabs.Screen  
         name="businessServices"  
         options={{  
-          tabBarIcon: ({ color }) => <Ionicons name="briefcase-outline" size={26} color={color} />,  
+          tabBarIcon: ({ color }) => <MaterialIcons name="business-center" size={26} color={color} />,  
         }}  
       />  
       <Tabs.Screen  
@@ -82,13 +82,13 @@ export default function businessTabsLayout() {
       <Tabs.Screen  
         name="businessReviews"  
         options={{  
-          tabBarIcon: ({ color }) => <Ionicons name="chatbubble-ellipses-outline" size={26} color={color} />,  
+          tabBarIcon: ({ color }) => <FontAwesome name="star" size={26} color={color} />,  
         }}  
       />  
       <Tabs.Screen  
         name="businessProfile"  
         options={{  
-          tabBarIcon: ({ color }) => <Ionicons name="person-circle-outline" size={28} color={color} />,  
+          tabBarIcon: ({ color }) => <Ionicons name="person" size={26} color={color} />,  
         }}  
       />  
     </Tabs>  

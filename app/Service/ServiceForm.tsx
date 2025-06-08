@@ -47,7 +47,7 @@ const ServiceForm = ({ onSubmit, isSubmitting }: ServiceFormProps) => {
       const user = auth.currentUser;
       if (user) {
         const db = getFirestore();
-        const businessDoc = await getDoc(doc(db, 'businesses', user.uid));
+        const businessDoc = await getDoc(doc(db, 'business', user.uid));
         if (businessDoc.exists()) {
           setBusinessId(user.uid);
         } else {
