@@ -134,7 +134,9 @@ export default function ForgetPassword() {
       </TouchableOpacity>
 
       <View style={styles.inner}>
+        <View style={styles.header}>
         <Text style={styles.title}>Reset Password</Text>
+        </View>
 
         <View style={styles.tabContainer}>
           <TouchableOpacity
@@ -157,19 +159,21 @@ export default function ForgetPassword() {
 
         {activeTab === 'request' ? (
           <>
-            <Text style={styles.subtitle}>Enter your email to get a reset link.</Text>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your email"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
-              />
+              <View style={styles.inputWrapper}>
+                <Ionicons name="mail-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                   placeholderTextColor={Colors.gray[400]} 
+                  placeholder="Please Enter your Email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
             </View>
-
             <TouchableOpacity
               onPress={handleRequestReset}
               style={[styles.resetButton, loading && styles.buttonDisabled]}
@@ -229,23 +233,42 @@ export default function ForgetPassword() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   inner: { padding: 20, marginTop: 40 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+  title: {    fontSize: 26, fontWeight: 'bold', marginBottom: 20, color: Colors.primary, },
   subtitle: { fontSize: 16, marginBottom: 20 },
   inputContainer: { marginBottom: 20 },
-  label: { fontSize: 14, marginBottom: 5 },
-  input: {
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.gray[800],
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    borderRadius: 5,
+    borderColor: Colors.gray[300],
+    borderRadius: 12,
+    paddingHorizontal: 16,
+  },
+  input: {
+    height: 50,
+    outlineWidth: 0,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: Colors.black,
   },
   resetButton: {
     backgroundColor: Colors.primary,
     padding: 15,
     alignItems: 'center',
-    borderRadius: 5,
+    borderRadius: 12,
   },
-  resetButtonText: { color: '#fff', fontWeight: 'bold' },
+  resetButtonText: {
+    color: Colors.white,
+    fontWeight: '600',
+    fontSize: 16,
+  },
   buttonDisabled: { opacity: 0.6 },
   tabContainer: {
     flexDirection: 'row',
@@ -261,9 +284,17 @@ const styles = StyleSheet.create({
   activeTab: {
     borderColor: Colors.primary,
   },
+   header: {
+    alignItems: 'center',
+
+    paddingBottom: 30,
+  },
   tabText: {
     fontSize: 16,
     color: '#777',
+  },
+  inputIcon: {
+    marginRight: 12,
   },
   activeTabText: {
     color: Colors.primary,

@@ -39,7 +39,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.subHeader}>Find your next trip</Text>
+       
         <Text style={styles.header}>Nordic scenery</Text>
 
         <View style={styles.searchContainer}>

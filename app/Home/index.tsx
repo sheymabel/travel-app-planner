@@ -6,7 +6,7 @@ import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { styles } from '../../src/styles/styles';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native'; // Import navigation hook
-import { Router } from 'react-router-dom';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
@@ -57,7 +57,7 @@ const handlePress = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.subHeader}>Find your next trip</Text>
+      
         <Text style={styles.header}>Nordic scenery</Text>
 
         <View style={styles.searchContainer}>

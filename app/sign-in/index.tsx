@@ -42,20 +42,20 @@ export default function SignIn() {
   const formTranslateY = useSharedValue(30);
 
   useEffect(() => {
-  navigation.setOptions({
-    headerShown: true,
-    headerTransparent: true,
-    headerTitle: '',
-    headerLeft: () => (
-      <TouchableOpacity
-        onPress={() => router.replace('/screens/Screen1')}
-        style={{ marginTop: -50, padding: 8, borderRadius: 10 }} // Moved custom styling here
-      >
-        <Ionicons name="arrow-back" size={24} color={Colors.black} />
-        <Text style={{ display: 'none' }}>Back Button</Text>
-      </TouchableOpacity>
-    ),
-  });
+    navigation.setOptions({
+      headerShown: true,
+      headerTransparent: true,
+      headerTitle: '',
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => router.replace('/screens/Screen1')}
+          style={{ marginTop: -50, padding: 8, borderRadius: 10 }} // Moved custom styling here
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.black} />
+          <Text style={{ display: 'none' }}>Back Button</Text>
+        </TouchableOpacity>
+      ),
+    });
 
     // Animation setup
     headerOpacity.value = withTiming(1, { duration: 500 });
@@ -102,7 +102,7 @@ export default function SignIn() {
 
   const handleSignIn = async () => {
     if (!validateForm()) return;
-  
+
     setLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -146,12 +146,12 @@ export default function SignIn() {
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.inner}>
-       <TouchableOpacity
-        onPress={() => router.replace('/screens/Screen1')}
-        style={{ marginTop: 1, padding: 5 }}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
-     
+        <TouchableOpacity
+          onPress={() => router.replace('/screens/Screen1')}
+          style={{ marginTop: 1, padding: 5 }}
+        >
+          <Ionicons name="arrow-back" size={24} color="black" />
+
         </TouchableOpacity>
 
         <Animated.View style={[styles.header, headerAnimatedStyle]}>
@@ -167,7 +167,8 @@ export default function SignIn() {
               <Ionicons name="mail-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Enter your email"
+                placeholder="Please enter your Email"
+                placeholderTextColor={Colors.gray[400]} 
                 keyboardType="email-address"
                 value={email}
                 onChangeText={setEmail}
@@ -182,8 +183,9 @@ export default function SignIn() {
               <Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Enter your password"
+                placeholder="Please enter your Password"
                 secureTextEntry={!showPassword}
+                 placeholderTextColor={Colors.gray[400]} 
                 value={password}
                 onChangeText={setPassword}
               />
@@ -223,15 +225,15 @@ export default function SignIn() {
               <Text style={styles.signUpLink}>Sign Up</Text>
             </TouchableOpacity>
           </View>
-<View style={styles.signUpContainer}>
-    <TouchableOpacity onPress={() => router.replace('/sign-in/forgetpassword')}>
-    <Text style={{ textAlign: 'center', color: Colors.primary, fontWeight: '500' }}>
-      Forgot Password?
-    </Text>
-  </TouchableOpacity>
-</View>
+          <View style={styles.signUpContainer}>
+            <TouchableOpacity onPress={() => router.replace('/sign-in/forgetpassword')}>
+              <Text style={{ textAlign: 'center', color: Colors.primary, fontWeight: '500' }}>
+                Forgot Password?
+              </Text>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
-    
+
       </ScrollView>
       <Toast />
     </KeyboardAvoidingView>
@@ -254,9 +256,9 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: Colors.black,
+    color: Colors.primary,
     marginBottom: 10,
   },
   subtitle: {
@@ -285,7 +287,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 16,
-    borderColor: Colors.black,
+    borderColor: Colors.gray[300],
     backgroundColor: Colors.white,
   },
   inputIcon: {
@@ -295,6 +297,8 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 16,
+    outlineWidth:0,
+  
   },
   eyeIcon: {
     padding: 8,
@@ -304,7 +308,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: 12,
     height: 50,
-    width: '60%',
+    width: '100%',
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
@@ -340,7 +344,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   socialButton: {
-    marginTop:30,
+    marginTop: 30,
     marginHorizontal: 12,
     padding: 10,
     borderWidth: 1,
@@ -355,12 +359,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   signUpText: {
-    fontSize: 14,
-    fontWeight: '400',
-  },
-  signUpLink: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '500',
-    color: Colors.primary,
+  },
+  signUpLink: { 
+   color: Colors.primary,
+    fontSize: 15,
+    fontWeight: '500',
   },
 });

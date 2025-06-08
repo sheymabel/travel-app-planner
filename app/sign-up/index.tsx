@@ -31,14 +31,15 @@ export default function SignUp() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedRole, setSelectedRole] = useState('Traveler');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const headerOpacity = useSharedValue(0);
   const headerTranslateY = useSharedValue(-20);
   const formOpacity = useSharedValue(0);
   const formTranslateY = useSharedValue(30);
-const AuthPath='/sign-in';
+  const AuthPath = '/sign-in';
   useEffect(() => {
     navigation.setOptions({
       headerShown: true,
@@ -116,8 +117,8 @@ const AuthPath='/sign-in';
           fullName,
           email,
           password,
-          
-          
+
+
           //role: 'Traveler',
           createdAt: new Date(),
         };
@@ -128,7 +129,7 @@ const AuthPath='/sign-in';
           fullName,
           email,
           password,
-        //role: 'business',
+          //role: 'business',
           createdAt: new Date(),
         };
         await setDoc(doc(db, 'business', user.uid), userDoc);
@@ -141,7 +142,7 @@ const AuthPath='/sign-in';
       //await setDoc(doc(db, 'Travler', user.uid), userDoc);
 
       showToast('Sign up successful', 'success');
-      redirectPath =AuthPath;
+      redirectPath = AuthPath;
       router.replace('/sign-in');
     } catch (error: any) {
       console.error(error);
@@ -161,101 +162,102 @@ const AuthPath='/sign-in';
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
-     <ScrollView contentContainerStyle={styles.inner}>
+      <ScrollView contentContainerStyle={styles.inner}>
         <TouchableOpacity
           onPress={() => router.replace('/sign-in')}
-          style={{ marginTop: -40, padding: 8, borderRadius: 10 }}
+          style={{ marginTop: 1, padding: 8, borderRadius: 10, }}
         >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-       
-      <Animated.View style={[styles.header, headerAnimatedStyle]}>
-        <Text style={styles.title}>Create Account</Text>
-      </Animated.View>
 
-      <Animated.View style={[styles.formContainer, formAnimatedStyle]}>
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Full Name</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="person-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your full name"
-              value={fullName}
-              onChangeText={setFullName}
-            />
+        <Animated.View style={[styles.header, headerAnimatedStyle]}>
+          <Text style={styles.title}>Create Account</Text>
+        </Animated.View>
+
+        <Animated.View style={[styles.formContainer, formAnimatedStyle]}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Full Name</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="person-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
+              <TextInput
+                placeholderTextColor={Colors.gray[400]}
+                style={styles.input}
+                placeholder="Please Enter your Full Name"
+                value={fullName}
+                onChangeText={setFullName}
+              />
+            </View>
           </View>
-        </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="mail-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="mail-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholderTextColor={Colors.gray[400]}
+                placeholder="Please Enter your Email"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+              />
+            </View>
           </View>
-        </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              secureTextEntry={true}
-              value={password}
-              onChangeText={setPassword}
-            />
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.inputWrapper}>
+              <Ionicons name="lock-closed-outline" size={20} color={Colors.gray[400]} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholderTextColor={Colors.gray[400]}
+                placeholder="Please Enter your Password"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+              />
+                <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color={Colors.gray[400]}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Select Role</Text>
-          <View style={styles.roleButtonsContainer}>
-            <TouchableOpacity
-              onPress={() => setSelectedRole('Traveler')}
-              style={getRoleButtonStyle('Traveler')}
-            >
-              <Text style={styles.roleButtonText}>Traveler</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                setSelectedRole('business');
-                router.replace('/business-register')
-              }}
-              style={getRoleButtonStyle('business')}
-            >
-              <Text style={styles.roleButtonText}>business</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
 
-        <TouchableOpacity
-          onPress={handleSignUp}
-          style={[styles.signUpButton, loading && styles.signUpButtonDisabled]}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={Colors.white} />
-          ) : (
-            <Text style={styles.signUpButtonText}>Sign Up</Text>
-          )}
-        </TouchableOpacity>
-
-        <View style={styles.signInContainer}>
-          <Text style={styles.signInText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.replace('/sign-in')}>
-            <Text style={styles.signInLink}>Sign In</Text>
+          <TouchableOpacity
+            onPress={handleSignUp}
+            style={[styles.signUpButton, loading && styles.signUpButtonDisabled]}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.white} />
+            ) : (
+              <Text style={styles.signUpButtonText}>Sign Up</Text>
+            )}
           </TouchableOpacity>
-        </View>
-      </Animated.View>
+          <View style={styles.signInContainer}>
+            <Text style={styles.signInText}>Create account </Text>
+            <TouchableOpacity onPress={() => {
+              setSelectedRole('business');
+              router.replace('/business-register')
+            }}>
+              <Text style={styles.signInLink}>Business</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.signInContainer}>
+            <Text style={styles.signInText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => router.replace('/sign-in')}>
+              <Text style={styles.signInLink}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
       </ScrollView>
       <Toast />
     </KeyboardAvoidingView>
@@ -278,15 +280,18 @@ const styles = StyleSheet.create({
   inputIcon: {
     marginRight: 10,
   },
+  eyeIcon: {
+    padding: 8,
+  },
   header: {
     alignItems: 'center',
     paddingTop: 60,
     paddingBottom: 30,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: Colors.black,
+    color: Colors.primary,
     marginBottom: 10,
   },
   formContainer: {
@@ -305,7 +310,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-   
+    outlineWidth: 0,
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 16,
@@ -334,7 +339,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center', 
+    textAlign: 'center',
   },
   selectedRole: {
     backgroundColor: Colors.primary,
@@ -347,7 +352,7 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    width: '60%',
+    width: '100%',
     alignSelf: 'center',
     marginVertical: 20,
     elevation: 5, // Shadow for Android
@@ -379,8 +384,8 @@ const styles = StyleSheet.create({
   },
   signInLink: {
     color: Colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '500',
   },
   backButton: {
     paddingLeft: 16,
