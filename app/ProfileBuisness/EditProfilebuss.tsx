@@ -1,119 +1,106 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ActivityIndicator, Alert, ScrollView, Modal, Pressable } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Modal,
+  Pressable,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { getAuth } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../configs/FirebaseConfig';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import styles from '../../src/styles/business-owner/editProfilScreenStyles';
 
-interface businessData {
+// Interface for Business Profile
+interface BusinessData {
+  id: string; // Firestore document ID
   name: string;
   email: string;
   phone: string;
-  address: string;
-  description: string;
+  businessAddress: string;
   category: string;
-  fullName: string;
-  website: string;
-  profileImage?: string;
+  city: string;
+  description: string;
+  profileImage?: string; // Base64 string starting with 'data:image/'
 }
 
-export default function  EditProfilebuss () {
+export default function EditProfileBusiness() {
   const router = useRouter();
   const auth = getAuth();
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [businessData, setbusinessData] = useState<businessData>({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    description: '',
-    category: '',
-    fullName: '',
-    website: ''
+  const [businessData, setBusinessData] = useState<BusinessData>({
+    id: '',
+    name: 'sheyma',
+    email: 'sheyma@gmail.com',
+    phone: '+12345678900',
+    businessAddress: '123 New Street, City',
+    category: 'Utilitaire',
+    city: 'Sfax Ville, Sfax',
+    description: 'Best restaurant in town',
+    profileImage: '',
   });
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
-    const fetchbusinessData = async () => {
+    const fetchBusinessData = async () => {
       try {
         const user = auth.currentUser;
         if (!user) {
+          Alert.alert('Error', 'No user logged in');
           router.replace('/business-owner/BusinessProfile');
           return;
         }
-
         setLoading(true);
-        const businessRef = doc(db, 'business', user.uid);
-        const businessSnap = await getDoc(businessRef);
-
-        if (businessSnap.exists()) {
-          const data = businessSnap.data() as businessData;
-          setbusinessData({
-            name: data.name || '',
-            email: data.email || '',
-            phone: data.phone || '',
-            address: data.address || '',
-            description: data.description || '',
-            category: data.category || '',
-            fullName: data.fullName || '',
-            website: data.website || '',
-            profileImage: data.profileImage || '',
-          });
-          // Set the first image if available
+        const snap = await getDoc(doc(db, 'Business', user.uid));
+        if (!snap.exists()) {
+          Alert.alert('Error', 'Business profile not found');
+          setBusinessData({ ...businessData, id: user.uid, email: user.email || 'sheyma@gmail.com' });
         } else {
-          Alert.alert('Error', 'business profile not found');
+          const data = snap.data() as Omit<BusinessData, 'id'>;
+          setBusinessData({ id: snap.id, ...data });
+          setImageUri(data.profileImage || null);
         }
-      } catch (error) {
-        console.error('Error fetching business data:', error);
+      } catch (err) {
+        console.error('Error fetching business data:', err);
         Alert.alert('Error', 'Failed to load business data');
       } finally {
         setLoading(false);
       }
     };
-
-    fetchbusinessData();
+    fetchBusinessData();
   }, []);
 
-  const handleImageError = () => {
-    setImageError(true);
-  };
-  
-
-  const handleImagePick = async () => {
-    try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission required', 'Please allow access to your photos');
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets?.[0]?.uri) {
-        setImageUri(result.assets[0].uri);
-        setImageError(false);
-      }
-    } catch (error) {
-      console.error('Image picker error:', error);
-      Alert.alert('Error', 'Failed to select image');
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      return Alert.alert('Permission required', 'Please allow access to your photos');
+    }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+      base64: true, // Enable base64 output
+    });
+    if (!res.canceled && res.assets[0].base64) {
+      const base64Image = `data:image/png;base64,${res.assets[0].base64}`;
+      setImageUri(base64Image);
     }
   };
 
   const showSaveConfirmation = () => {
-    if (!businessData.name.trim()) {
-      Alert.alert('Error', 'business name is required');
-      return;
+    if (!businessData.name.trim() || !businessData.email.trim()) {
+      return Alert.alert('Error', 'Name and Email are required');
     }
     setShowConfirmation(true);
   };
@@ -121,49 +108,27 @@ export default function  EditProfilebuss () {
   const handleUpdate = async () => {
     setShowConfirmation(false);
     setUpdating(true);
-    
     try {
       const user = auth.currentUser;
-      if (!user) {
-        router.replace('/business-owner/BusinessProfile');
-        return;
-      }
+      if (!user) throw new Error('Not signed in');
 
-      const formData = new FormData();
-      formData.append('name', businessData.name);
-      formData.append('email', businessData.email);
-      formData.append('phone', businessData.phone);
-      formData.append('address', businessData.address);
-      formData.append('description', businessData.description);
-      formData.append('category', businessData.category);
-      formData.append('fullName', businessData.fullName);
-      formData.append('website', businessData.website);
-      
-      if (imageUri) {
-        const imagesArray = [imageUri];
-        formData.append('profileImages', JSON.stringify(imagesArray));
-      }
+      const updatedData: Omit<BusinessData, 'id'> = {
+        name: businessData.name,
+        email: businessData.email,
+        phone: businessData.phone || '',
+        businessAddress: businessData.businessAddress || '',
+        category: businessData.category || '',
+        city: businessData.city || '',
+        description: businessData.description || '',
+        profileImage: imageUri || '',
+      };
 
-      const response = await fetch(`http://localhost:5000/business/${user.uid}`, {
-        method: 'PUT',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update business');
-      }
-
-      const responseData = await response.json();
-
-      if (responseData.message === 'business profile updated successfully') {
-        Alert.alert('Success', 'business profile updated successfully');
-        router.back();
-      } else {
-        throw new Error('Failed to update business');
-      }
-    } catch (error) {
-      console.error('Update error:', error);
-      Alert.alert('Error', 'Failed to update profile');
+      await setDoc(doc(db, 'business', user.uid), updatedData, { merge: true });
+      Alert.alert('Success', 'Business profile updated successfully');
+      router.back(); // Return to BusinessProfileScreen
+    } catch (err) {
+      console.error('Error updating business data:', err);
+      Alert.alert('Error', 'Failed to update business profile');
     } finally {
       setUpdating(false);
     }
@@ -182,144 +147,69 @@ export default function  EditProfilebuss () {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.replace('/business-owner/BusinessProfile')}>
-          <Ionicons name="arrow-back" size={24} color="#292C31FF" />
+          <Ionicons name="arrow-back" size={24} color="#4A90E2" />
         </TouchableOpacity>
         <TouchableOpacity onPress={showSaveConfirmation} disabled={updating}>
-          {updating ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text style={styles.saveButton}>Save</Text>
-          )}
+          {updating ? <ActivityIndicator color="white" /> : <Text style={styles.saveButton}>Save</Text>}
         </TouchableOpacity>
       </View>
 
       {/* Profile Image */}
-      <TouchableOpacity style={styles.imageContainer} onPress={handleImagePick}>
-        <Image
-          style={styles.profileImage}
-          onError={handleImageError}
-          resizeMode="cover"
-        />
+      <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
+        {imageUri ? (
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.profileImage}
+            resizeMode="cover"
+            accessibilityLabel="Business Profile Image"
+          />
+        ) : (
+          <Ionicons name="business" size={80} color="#6B7280" />
+        )}
         <View style={styles.cameraIcon}>
           <Feather name="camera" size={20} color="white" />
         </View>
       </TouchableOpacity>
 
       {/* Form Fields */}
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Owner Name</Text>
-        <TextInput
-          style={styles.input}
-          value={businessData.fullName}
-          onChangeText={(text) => setbusinessData({...businessData, fullName: text})}
-          placeholder="Owner full name"
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>business Name*</Text>
-        <TextInput
-          style={styles.input}
-          value={businessData.name}
-          onChangeText={(text) => setbusinessData({...businessData, name: text})}
-          placeholder="business name"
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Category</Text>
-        <TextInput
-          style={styles.input}
-          value={businessData.category}
-          onChangeText={(text) => setbusinessData({...businessData, category: text})}
-          placeholder="Category"
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Description</Text>
-        <TextInput
-          style={[styles.input, styles.multilineInput]}
-          value={businessData.description}
-          onChangeText={(text) => setbusinessData({...businessData, description: text})}
-          placeholder="Description"
-          multiline
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Address*</Text>
-        <TextInput
-          style={styles.input}
-          value={businessData.address}
-          onChangeText={(text) => setbusinessData({...businessData, address: text})}
-          placeholder="Address"
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Phone*</Text>
-        <TextInput
-          style={styles.input}
-          value={businessData.phone}
-          onChangeText={(text) => setbusinessData({...businessData, phone: text})}
-          placeholder="Phone"
-          keyboardType="phone-pad"
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Email*</Text>
-        <TextInput
-          style={styles.input}
-          value={businessData.email}
-          onChangeText={(text) => setbusinessData({...businessData, email: text})}
-          placeholder="Email"
-          keyboardType="email-address"
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Website</Text>
-        <TextInput
-          style={styles.input}
-          value={businessData.website}
-          onChangeText={(text) => setbusinessData({...businessData, website: text})}
-          placeholder="Website URL"
-          keyboardType="url"
-        />
-      </View>
+      {(['name', 'email', 'phone', 'businessAddress', 'category', 'city', 'description'] as (keyof Omit<BusinessData, 'id' | 'profileImage'>)[]).map(
+        (field, i) => (
+          <View style={styles.formGroup} key={i}>
+            <Text style={styles.label}>
+              {field === 'businessAddress' ? 'Business Address' : field.charAt(0).toUpperCase() + field.slice(1)}
+              {['name', 'email'].includes(field) ? '*' : ''}
+            </Text>
+            <TextInput
+              style={[styles.input, field === 'description' && styles.multilineInput]}
+              value={businessData[field] || ''}
+              onChangeText={(text) => setBusinessData({ ...businessData, [field]: text })}
+              placeholder={`Enter ${field === 'name' ? 'name' : field}`}
+              keyboardType={
+                field === 'email' ? 'email-address' : field === 'phone' ? 'phone-pad' : 'default'
+              }
+              multiline={field === 'description'}
+              accessibilityLabel={field}
+            />
+          </View>
+        )
+      )}
 
       {/* Confirmation Modal */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showConfirmation}
-        onRequestClose={() => setShowConfirmation(false)}
-      >
+      <Modal transparent visible={showConfirmation} onRequestClose={() => setShowConfirmation(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Confirm Changes</Text>
-            <Text style={styles.modalText}>
-              Are you sure you want to save these changes?
-            </Text>
+            <Text style={styles.modalText}>Are you sure you want to save these changes?</Text>
             <View style={styles.modalButtons}>
-              <Pressable 
-                style={styles.modalButton}
-                onPress={() => setShowConfirmation(false)}
-              >
+              <Pressable style={styles.modalButton} onPress={() => setShowConfirmation(false)}>
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </Pressable>
-              <Pressable 
+              <Pressable
                 style={[styles.modalButton, styles.modalButtonPrimary]}
                 onPress={handleUpdate}
                 disabled={updating}
               >
-                {updating ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text >Save Changes</Text>
-                )}
+                <Text style={styles.modalButtonText}>Save</Text>
               </Pressable>
             </View>
           </View>
@@ -327,5 +217,4 @@ export default function  EditProfilebuss () {
       </Modal>
     </ScrollView>
   );
-};
-
+}

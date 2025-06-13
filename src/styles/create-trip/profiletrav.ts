@@ -1,21 +1,40 @@
 import { StyleSheet } from 'react-native';
+import { Colors } from '../../../constants/Colors';
 
 export default   StyleSheet.create({
+  
   // Container Styles
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+
   },
   container: {
     flex: 1,
     paddingHorizontal: 20,
+    backgroundColor: Colors.white,
   },
-  
+   inner: {
+    flex: 1,
+    padding: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 25,
+    fontWeight: '600',
+    color: Colors.gray[800], // Approximating #212529
+    marginBottom: 12,
+  },
   // Loading State
   loader: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Colors.white,    
   },
   
   // Profile Header
@@ -34,29 +53,8 @@ export default   StyleSheet.create({
     borderWidth: 3,
     borderColor: '#e9ecef',
   },
-  profileImagePlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#e9ecef',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#dee2e6',
-  },
-  cameraIconContainer: {
-    position: 'absolute',
-    bottom: 5,
-    right: 5,
-    backgroundColor: '#4263eb',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#f8f9fa',
-  },
+  
+  
   
   // Text Styles
   profileName: {

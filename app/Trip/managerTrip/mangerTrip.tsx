@@ -53,7 +53,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     color: Colors.primary,
-    fontFamily: 'outfit-bold',
     textAlign: 'center',
     marginBottom: 30,
   },
@@ -80,14 +79,12 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    fontFamily: 'outfit-bold',
     color: Colors.gray[800],
     marginTop: 15,
     marginBottom: 5,
   },
   cardDescription: {
     fontSize: 14,
-    fontFamily: 'outfit-regular',
     color: Colors.gray[600],
     textAlign: 'center',
   },

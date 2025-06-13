@@ -19,6 +19,7 @@ import { db } from '../../configs/FirebaseConfig';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../src/utils/i18n';
 import styles from '../../src/styles/create-trip/profiletrav';
+import { Colors } from '../../constants/Colors';
 
 interface TravelerData {
   id: string;
@@ -39,14 +40,13 @@ export default function TravelerProfileScreen() {
   const [traveler, setTraveler] = useState<TravelerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const [activeSection, setActiveSection] = useState<'profile' | 'favorites'>('profile');
- useEffect(() => {
-    navigation.setOptions({
+useEffect(() => {
+     navigation.setOptions({
       headerShown: true,
       headerTransparent: true,
       headerTitle: '',
     });
-  }, [navigation]);
+     }, []);
   const fetchTraveler = useCallback(async () => {
     try {
       const user = auth.currentUser;
@@ -166,6 +166,11 @@ export default function TravelerProfileScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.inner}>
+                <View style={styles.header}>
+                  <Text style={styles.title} accessible={false}>Profile</Text>
+                </View>
+                </View>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.profileImageContainer}>
@@ -176,12 +181,11 @@ export default function TravelerProfileScreen() {
                 resizeMode="cover"
               />
             ) : (
-              <View style={styles.profileImagePlaceholder}>
+              <View >
                 <Ionicons name="person" size={50} color="#6B7280" />
               </View>
             )}
             <TouchableOpacity
-              style={styles.cameraIconContainer}
               onPress={() => Alert.alert(t('info'), t('editImagePrompt'))}
             >
               <Feather name="camera" size={18} color="#fff" />
@@ -191,21 +195,6 @@ export default function TravelerProfileScreen() {
           <Text style={styles.profileName}>{traveler.fullName}</Text>
           <Text style={styles.profileEmail}>{traveler.email}</Text>
         </View>
-
-        {/* Navigation Tabs */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tabButton, activeSection === 'profile' && styles.activeTab]}
-           // onPress={() => toggleSection('profile')}
-          >
-            <Text style={[styles.tabText, activeSection === 'profile' && styles.activeTabText]}>
-              {t('profile')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Profile Content */}
-        {activeSection === 'profile' ? (
           <View >
             {traveler.bio && (
               <View style={styles.infoCard}>
@@ -236,18 +225,14 @@ export default function TravelerProfileScreen() {
               <Text style={styles.editButtonText}>{t('editProfile')}</Text>
             </TouchableOpacity>
           </View>
-        ) : (
           <View >
              <TouchableOpacity                         
               onPress={() => router.replace('/Trip/Favorites')}>
               <View style={styles.emptyState}>
-                <Ionicons name="heart-dislike-outline" size={50} color="#9CA3AF" />
-                <Text style={styles.emptyStateText}>{t('noFavorites')}</Text>
-                <Text style={styles.emptyStateSubtext}>{t('noFavoritesHint')}</Text>
               </View>
             </TouchableOpacity>
           </View>
-        )}
+  
         {/* Settings Section */}
         <View style={styles.settingsSection}>
           <Text style={styles.settingsTitle}>{t('settings')}</Text>

@@ -161,9 +161,10 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   title: {
-    fontFamily: 'outfit-bold',
-    fontSize: 26,
-    color: Colors.gray[800],
+    fontSize: 25,
+    fontWeight: '600',
+    color: Colors.gray[800], // Approximating #212529
+    marginBottom: 12,
   },
   emptyState: {
     flex: 1,
@@ -171,7 +172,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontFamily: 'outfit-regular',
     fontSize: 18,
     color: Colors.gray[400],
     textAlign: 'center',
@@ -199,16 +199,13 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   dataLabel: {
-    fontFamily: 'outfit-medium',
-    fontSize: 14,
-    color: Colors.gray[700],
-    marginLeft: 8,
+    fontSize: 15,
+    color: Colors.gray[600], // Approximating #495057
+    marginLeft: 12,
   },
   dataValue: {
-    fontFamily: 'outfit-regular',
-    fontSize: 14,
-    color: Colors.gray[600],
-    marginLeft: 4,
-    flexShrink: 1,
+    fontSize: 15,
+    color: Colors.gray[600], // Approximating #495057
+    marginLeft: 12,
   },
 });

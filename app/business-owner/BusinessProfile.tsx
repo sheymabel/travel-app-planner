@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, ScrollView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
-import { getAuth } from 'firebase/auth';
+import { getAuth, signOut } from 'firebase/auth'; // Added signOut import
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../configs/FirebaseConfig';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, AntDesign } from '@expo/vector-icons'; // Ensure AntDesign is imported
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import styles from '../../src/styles/business-owner/editProfilScreenStyles';
@@ -75,12 +75,31 @@ export default function BusinessProfile() {
     setImageError(true);
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      Alert.alert(t('success'), t('logoutSuccess')); // Optional success message
+      router.replace('/sign-in');
+    } catch (error) {
+      console.error('Logout error:', error);
+      Alert.alert(t('error'), t('logoutError'));
+    }
+  };
+
   const getImageSource = () => {
     if (imageError || !businessData?.profileImage) {
       return require('../../assets/images/tunis.png');
     }
     return { uri: businessData.profileImage };
   };
+
+  const appItems = [
+    {
+      icon: <AntDesign name="logout" size={24} color="#EF4444" />,
+      label: t('logOut'),
+      action: handleLogout,
+    },
+  ];
 
   if (loading) {
     return (
@@ -137,13 +156,44 @@ export default function BusinessProfile() {
           <Ionicons name="call-outline" size={18} color="#666" />
           <Text style={styles.infoText}>{businessData.phone}</Text>
         </View>
+        <View style={styles.infoRow}>
+          <Ionicons name="location-outline" size={18} color="#666" />
+          <Text style={styles.infoText}>{businessData.address}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Ionicons name="pricetag-outline" size={18} color="#666" />
+          <Text style={styles.infoText}>{businessData.category}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Ionicons name="business-outline" size={18} color="#666" />
+          <Text style={styles.infoText}>{businessData.city}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Ionicons name="globe-outline" size={18} color="#666" />
+          <Text style={styles.infoText}>{businessData.website}</Text>
+        </View>
       </View>
 
-     
       {/* Description Card */}
       <View style={styles.infoCard}>
         <Text style={styles.sectionTitle}>{t('business.aboutUs')}</Text>
         <Text style={styles.descriptionText}>{businessData.description}</Text>
+      </View>
+
+      {/* App Items (Logout) */}
+      <View style={styles.infoCard}>
+        <Text style={styles.sectionTitle}>{t('Settings')}</Text>
+        {appItems.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            //style={styles.appItem}
+            onPress={item.action}
+            accessibilityLabel={item.label}
+          >
+            <View >{item.icon}</View>
+            <Text >{item.label}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </ScrollView>
   );
