@@ -1,11 +1,10 @@
-import { StyleSheet, Text, View, TextInput, ScrollView, Image, ImageBackground, TouchableOpacity, Dimensions } from 'react-native';
+import {  Text, View, TextInput, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { StatusBar } from 'expo-status-bar';
-import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { styles } from '../../src/styles/styles';
-import { Stack } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
 const { width, height } = Dimensions.get('window');
@@ -77,10 +76,7 @@ const services = [
     isFavoite: false,
   },
 ]
-
-
 export default function HomeScreen() {
-
   const router = useRouter();
   const navigation = useNavigation();
   const [serviceList, setServices] = useState(services)
@@ -152,6 +148,4 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
       </ScrollView>
-    </SafeAreaView>
-  );
-}
+    </SafeAreaView>)}

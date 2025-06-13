@@ -36,10 +36,7 @@ export default function businessTabsLayout() {
       headerTitle: '',  
     });  
   }, [navigation]);  
-const Homebusiness = () => <View><Text>Home</Text></View>;  
-const businessServices = () => <View><Text>Services</Text></View>;  
-const businessReviews = () => <View><Text>Reviews</Text></View>;  
-const businessProfile = () => <View><Text>Profile</Text></View>;  
+
 
   return (  
     <Tabs  

@@ -12,7 +12,7 @@ export default function TestTrip() {
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Travel Companion</Text>
+            <Text style={styles.title}> Trip</Text>
             <Text style={styles.subtitle}>Plan your perfect journey</Text>
           </View>
 

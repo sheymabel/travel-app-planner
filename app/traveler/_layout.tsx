@@ -21,7 +21,7 @@ export default function TravelerLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'services',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),
@@ -33,15 +33,6 @@ export default function TravelerLayout() {
           title: 'My Trips',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="airplane-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="discaver"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="compass-outline" size={size} color={color} />
           ),
         }}
       />

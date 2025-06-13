@@ -23,23 +23,19 @@ interface Trip {
   selectedDates?: string[];
 }
 
-export default function TripsScreen() {
+export default function TripScreen() {
   const [userTrips, setUserTrips] = useState<Trip[]>([]);
-  const navigation = useNavigation();
   const router = useRouter();
 
   const db = getFirestore(app);
   const auth = getAuth(app);
-
+  const navigation = useNavigation();
   useEffect(() => {
-    const unsubscribeNavFocus = navigation.addListener('focus', () => {
-      navigation.setOptions({
-        headerShown: true,
-        headerTransparent: true,
-        headerTitle: '',
-      });
+     navigation.setOptions({
+      headerShown: true,
+      headerTransparent: true,
+      headerTitle: '',
     });
-
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
@@ -50,7 +46,15 @@ export default function TripsScreen() {
             id: doc.id,
             ...doc.data(),
           }));
-          setUserTrips(trips);
+
+          // Sort trips in descending order (most recent first)
+          const sortedTrips = trips.sort((a, b) => {
+            const dateA = a.selectedDates?.[0] || '';
+            const dateB = b.selectedDates?.[0] || '';
+            return dateB.localeCompare(dateA); // descending
+          });
+
+          setUserTrips(sortedTrips);
         } catch (error) {
           console.error('Error fetching trips:', error);
         }
@@ -60,7 +64,6 @@ export default function TripsScreen() {
     });
 
     return () => {
-      unsubscribeNavFocus();
       unsubscribeAuth();
     };
   }, []);
@@ -74,16 +77,14 @@ export default function TripsScreen() {
   const renderTripCard = ({ item }: { item: Trip }) => (
     <TouchableOpacity
       style={styles.tripCard}
-      // onPress={() => router.push(`/trip-details/${item.id}`)}
+      onPress={() => router.replace('/Trip/managerTrip/mangerTrip')}
     >
-      {/* City */}
       <View style={styles.dataRow}>
         <Ionicons name="location" size={22} color={Colors.primary} />
         <Text style={styles.dataLabel}>City:</Text>
         <Text style={styles.dataValue}>{item.city || 'Unnamed Trip'}</Text>
       </View>
 
-      {/* Region */}
       <View style={styles.dataRow}>
         <Ionicons name="map" size={20} color={Colors.gray[500]} />
         <Text style={styles.dataLabel}>Region:</Text>
@@ -92,14 +93,12 @@ export default function TripsScreen() {
         </Text>
       </View>
 
-      {/* Dates */}
       <View style={styles.dataRow}>
         <Ionicons name="calendar" size={20} color={Colors.gray[500]} />
         <Text style={styles.dataLabel}>Dates:</Text>
         <Text style={styles.dataValue}>{formatDateRange(item.selectedDates)}</Text>
       </View>
 
-      {/* Travel Type */}
       {item.travelType && (
         <View style={styles.dataRow}>
           <Ionicons
@@ -120,7 +119,7 @@ export default function TripsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.inner}>
         <View style={styles.header}>
-          <Text style={styles.title}>My Trips</Text>
+          <Text style={styles.title} accessible={false}>My Trips</Text>
           <TouchableOpacity>
             <Ionicons name="add-circle" size={40} color={Colors.primary} />
           </TouchableOpacity>
@@ -162,9 +161,10 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   title: {
-    fontFamily: 'outfit-bold',
-    fontSize: 26,
-    color: Colors.gray[800],
+    fontSize: 25,
+    fontWeight: '600',
+    color: Colors.gray[800], // Approximating #212529
+    marginBottom: 12,
   },
   emptyState: {
     flex: 1,
@@ -172,7 +172,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontFamily: 'outfit-regular',
     fontSize: 18,
     color: Colors.gray[400],
     textAlign: 'center',
@@ -200,16 +199,13 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   dataLabel: {
-    fontFamily: 'outfit-medium',
-    fontSize: 14,
-    color: Colors.gray[700],
-    marginLeft: 8,
+    fontSize: 15,
+    color: Colors.gray[600], // Approximating #495057
+    marginLeft: 12,
   },
   dataValue: {
-    fontFamily: 'outfit-regular',
-    fontSize: 14,
-    color: Colors.gray[600],
-    marginLeft: 4,
-    flexShrink: 1,
+    fontSize: 15,
+    color: Colors.gray[600], // Approximating #495057
+    marginLeft: 12,
   },
 });

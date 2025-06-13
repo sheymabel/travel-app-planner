@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 50,
     marginBottom: 15,
+    position: 'relative',
   },
   profileImage: {
     width: 120,
@@ -48,6 +49,14 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#4A90E2',
     backgroundColor: '#f0f0f0',
+  },
+  cameraIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#4A90E2',
+    borderRadius: 15,
+    padding: 5,
   },
   infoCard: {
     backgroundColor: 'white',
@@ -94,10 +103,87 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     color: '#4A90E2',
+    fontSize: 16,
   },
   noDataText: {
     fontSize: 16,
     color: '#666',
+  },
+  // Form styles for EditProfileBusiness
+  formGroup: {
+    marginHorizontal: 20,
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 5,
+    fontWeight: '500',
+  },
+  input: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: '#333',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  multilineInput: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  saveButton: {
+    color: '#4A90E2',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    flex: 1,
+    padding: 10,
+    alignItems: 'center',
+    marginHorizontal: 5,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+  },
+  modalButtonPrimary: {
+    backgroundColor: '#4A90E2',
+  },
+  modalButtonText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
   },
 });
 
