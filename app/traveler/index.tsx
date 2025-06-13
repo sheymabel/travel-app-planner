@@ -1,47 +1,110 @@
-import { StyleSheet, Text, View, TextInput, ScrollView, ImageBackground, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TextInput, ScrollView, Image, ImageBackground, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
+
 import { StatusBar } from 'expo-status-bar';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { styles } from '../../src/styles/styles';
-import {  Stack } from 'expo-router';
-import  { useState, useEffect } from 'react';
+import { Stack } from 'expo-router';
+import { useState, useEffect } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.55;
-const SMALL_CARD_WIDTH = width * 0.4;
-const popularLocations1 = [
-  { id: '1', name: 'Monastir', price: 689, rating: 4.9, image: 'https://images.unsplash.com/photo-1581015102891-1a16854854a7?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '2', name: 'Tunis', price: 726, rating: null, image: 'https://images.unsplash.com/photo-1583253066701-c4f6e7f5439e?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '3', name: 'Sousse', price: 550, rating: 4.7, image: 'https://images.unsplash.com/photo-1604969774433-86bc8f4a1b5d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-];
+const { width, height } = Dimensions.get('window');
+const CARD_HEIGHT = height * 0.89;
+const CARD_WIDTH = width * 0.89;
 
-const popularLocations2 = [
-  { id: '1', name: 'Bizerte', locations: 16, image: 'https://images.unsplash.com/photo-1604580863011-f41c0f5b8e1d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '2', name: 'Aïn Draham', locations: 22, image: 'https://images.unsplash.com/photo-1517479149777-5f3b15118e8c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '3', name: 'Sidi Bou Said', locations: 12, image: 'https://images.unsplash.com/photo-1580502377239-07ff586c056a?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-];
+const SMALL_CARD_WIDTH = width * 0.4;
+
+
+const services = [
+  {
+    id: '1',
+    category: 'Tour',
+    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
+    name: 'My Service Name',
+    price: 25,
+    createur: 'Amine Bacar',
+    rating: 4.52,
+    isFavoite: false,
+  },
+  {
+    id: '2',
+    category: 'Tour',
+    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
+    name: 'City Explorer',
+    price: 30,
+    createur: 'Amine Bacar',
+    rating: 4.78,
+    isFavoite: true,
+  },
+  {
+    id: '3',
+    category: 'Tour',
+    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
+    name: 'Desert Safari',
+    price: 45,
+    createur: 'Amine Bacar',
+    rating: 4.9,
+    isFavoite: false,
+  },
+  {
+    id: '4',
+    category: 'Tour',
+    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
+    name: 'Historic Walk',
+    price: 20,
+    createur: 'Amine Bacar',
+    rating: 4.2,
+    isFavoite: false,
+  },
+  {
+    id: '5',
+    category: 'Tour',
+    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
+    name: 'Nature Hike',
+    price: 35,
+    createur: 'Amine Bacar',
+    rating: 4.7,
+    isFavoite: true,
+  },
+  {
+    id: '6',
+    category: 'Tour',
+    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
+    name: 'Museum Pass',
+    price: 18,
+    createur: 'Amine Bacar',
+    rating: 4.4,
+    isFavoite: false,
+  },
+]
+
 
 export default function HomeScreen() {
 
-    const router = useRouter();
-    const [user, setUser] = useState(null);
-      const navigation = useNavigation();
-      
-      useEffect(() => {
-          navigation.setOptions({
-            headerShown: true,
-            headerTransparent: true,
-            headerTitle: '',
-          });
-        }
-        , []);
+  const router = useRouter();
+  const navigation = useNavigation();
+  const [serviceList, setServices] = useState(services)
+  const toggleFavorite = (id: string) => {
+    const updated = services.map((service) =>
+      service.id === id
+        ? { ...service, isFavoite: !service.isFavoite }
+        : service
+    );
+    setServices(updated);
+  };
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerTransparent: true,
+      headerTitle: '',
+    });
+  }
+    , []);
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-       
         <Text style={styles.header}>Nordic scenery</Text>
-
         <View style={styles.searchContainer}>
           <View style={styles.searchBox}>
             <Feather name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
@@ -51,63 +114,40 @@ export default function HomeScreen() {
               style={styles.searchInput}
             />
           </View>
-          <TouchableOpacity style={styles.filterButton}>
-            <Ionicons name="options-outline" size={24} color="white" />
-          </TouchableOpacity>
+        
         </View>
-
-        <Text style={styles.sectionTitle}>Popular locations</Text>
         <ScrollView
-          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalScroll}
-          snapToInterval={CARD_WIDTH + 16}
           decelerationRate="fast"
         >
-          {popularLocations1.map((location) => (
+          {serviceList.map((location) => (
             <TouchableOpacity key={location.id} style={[styles.card, { width: CARD_WIDTH }]}>
-              <ImageBackground
-                source={{ uri: location.image }}
-                style={styles.cardImage}
-                imageStyle={styles.cardImageStyle}
-              >
-                <View style={styles.cardOverlay}>
-                  <Text style={styles.cardTitle}>{location.name}</Text>
-                  <View style={styles.cardBottomRow}>
-                    <Text style={styles.cardPrice}>from ${location.price}</Text>
-                    {location.rating && (
-                      <View style={styles.cardRating}>
-                        <Text style={styles.cardRatingText}>{location.rating}</Text>
-                        <Ionicons name="star" size={14} color="#FFD700" />
-                      </View>
-                    )}
-                  </View>
-                </View>
-              </ImageBackground>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
 
-        <Text style={styles.sectionTitle}>Popular locations</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalScroll}
-          snapToInterval={SMALL_CARD_WIDTH + 16}
-          decelerationRate="fast"
-        >
-          {popularLocations2.map((location) => (
-            <TouchableOpacity key={location.id} style={[styles.smallCard, { width: SMALL_CARD_WIDTH }]}>
-              <ImageBackground
+              <Image
                 source={{ uri: location.image }}
-                style={styles.smallCardImage}
-                imageStyle={styles.smallCardImageStyle}
+                style={[styles.cardImage, { width: CARD_WIDTH * 0.40 }]}
               >
-                <View style={styles.smallCardOverlay}>
-                  <Text style={styles.smallCardTitle}>{location.name}</Text>
-                  <Text style={styles.smallCardLocations}>{location.locations} locations</Text>
+              </Image>
+              <View style={[styles.cardOverlay, { width: CARD_WIDTH * 0.60 }]}>
+                <TouchableOpacity style={styles.favoriteIcon} onPress={() => toggleFavorite(location.id)}>
+                  <MaterialIcons name="favorite" size={26} color={location.isFavoite ? "red" : "#ccc"} />
+                </TouchableOpacity>
+                <Text style={styles.cardTitle}>{location.name}</Text>
+                <Text style={[styles.textCategory]}> {location.category}</Text>
+                <Text style={styles.cardText} >{location.createur}</Text>
+                <View style={styles.cardBottomRow}>
+                  {location.rating && (
+                    <View style={styles.cardRating}>
+                      <Text style={styles.cardRatingText}>{location.rating}</Text>
+                      <Ionicons name="star" size={14} color="#FFD700" />
+                    </View>
+                  )}
+                  <Text style={styles.cardText}>from {location.price} DT</Text>
+
                 </View>
-              </ImageBackground>
+              </View>
+
             </TouchableOpacity>
           ))}
         </ScrollView>

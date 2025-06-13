@@ -26,6 +26,7 @@ import Animated, {
   withTiming,
   withSpring,
 } from 'react-native-reanimated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SignIn() {
   const navigation = useNavigation();
@@ -107,7 +108,13 @@ export default function SignIn() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
+      console.log('user', user)
+      await AsyncStorage.setItem('user', JSON.stringify({
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+      }));
       const userTRef = doc(db, 'Travler', user.uid);
       const userBRef = doc(db, 'business', user.uid);
 
@@ -125,7 +132,7 @@ export default function SignIn() {
       }
 
       if (isTraveler) {
-        await router.replace('/traveler');
+        await router.replace('../Trip/TestTrip');
       } else {
         await router.replace('/business-owner/HomeBusiness');
       }
@@ -168,7 +175,7 @@ export default function SignIn() {
               <TextInput
                 style={styles.input}
                 placeholder="Please enter your Email"
-                placeholderTextColor={Colors.gray[400]} 
+                placeholderTextColor={Colors.gray[400]}
                 keyboardType="email-address"
                 value={email}
                 onChangeText={setEmail}
@@ -185,7 +192,7 @@ export default function SignIn() {
                 style={styles.input}
                 placeholder="Please enter your Password"
                 secureTextEntry={!showPassword}
-                 placeholderTextColor={Colors.gray[400]} 
+                placeholderTextColor={Colors.gray[400]}
                 value={password}
                 onChangeText={setPassword}
               />
@@ -297,8 +304,8 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     fontSize: 16,
-    outlineWidth:0,
-  
+    outlineWidth: 0,
+
   },
   eyeIcon: {
     padding: 8,
@@ -362,8 +369,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
-  signUpLink: { 
-   color: Colors.primary,
+  signUpLink: {
+    color: Colors.primary,
     fontSize: 15,
     fontWeight: '500',
   },

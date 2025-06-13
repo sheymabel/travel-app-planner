@@ -111,16 +111,7 @@ const navigation = useNavigation();
       label: t('favourites'),
       action: () => toggleSection('favorites'),
     },
-    {
-      icon: <Ionicons name="map-outline" size={24} color="#1F2937" />,
-      label: t('savedTrips'),
-      action: () => toggleSection('trips'),
-    },
-    {
-      icon: <Ionicons name="bookmark-outline" size={24} color="#1F2937" />,
-      label: t('bookmarks'),
-      action: () => toggleSection('bookmarks'),
-    },
+  
   ];
 
   const settingsItems = [
@@ -129,11 +120,7 @@ const navigation = useNavigation();
       label: t('languages'),
       action: () => setLanguageModalVisible(true),
     },
-    {
-      icon: <Ionicons name="options-outline" size={24} color="#1F2937" />,
-      label: t('travelPreferences'),
-      action: () => toggleSection('preferences'),
-    },
+  
   ];
 
   const appItems = [
@@ -238,12 +225,11 @@ const navigation = useNavigation();
         </View>
 
         <View style={styles.menuGroup}>{menuItems.map(renderMenuItem)}</View>
-        {activeSection && renderSectionContent()}
+       
         <View style={styles.divider} />
 
         <View style={styles.menuGroup}>{settingsItems.map(renderMenuItem)}</View>
-        {activeSection && renderSectionContent()}
-        <View style={styles.divider} />
+       
         <View style={styles.menuGroup}>{appItems.map(renderMenuItem)}</View>
 
 
@@ -256,13 +242,13 @@ const navigation = useNavigation();
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
-              {['en', 'fr', 'ar'].map((lang) => (
+              {['English', 'Francais'].map((lang) => (
                 <Pressable
                   key={lang}
                   style={styles.modalOption}
                   onPress={() => handleLanguageSelect(lang)}
                 >
-                  <Text>{t(`languages.${lang}`)}</Text>
+                  <Text>{t(`${lang}`)}</Text>
                   {i18n.language === lang && (
                     <Ionicons name="checkmark" size={20} color="green" />
                   )}
