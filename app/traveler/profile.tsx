@@ -1,5 +1,4 @@
-// Traveler Profile Screen
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,116 +11,120 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, Feather, AntDesign, MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Ionicons, Feather, AntDesign, MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { useRouter,useNavigation} from 'expo-router';
 import { getAuth, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../configs/FirebaseConfig';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../src/utils/i18n';
 import styles from '../../src/styles/create-trip/profiletrav';
-import { useNavigation } from 'expo-router';
 
-export default function ProfileScreen() {
+interface TravelerData {
+  id: string;
+  fullName: string;
+  email: string;
+  bio?: string;
+  address?: string;
+  phone?: string;
+  profileImage?: string;
+  favorites?: string[]; // Added favorites array
+}
+
+export default function TravelerProfileScreen() {
   const { t } = useTranslation();
+  const navigation = useNavigation();
   const router = useRouter();
   const auth = getAuth();
-const navigation = useNavigation();
-  const [userData, setUserData] = useState<{
-    name: string;
-    email: string;
-    bio?: string;
-    location?: string;
-    travelPreferences?: string[];
-  } | null>(null);
+  const [traveler, setTraveler] = useState<TravelerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<'profile' | 'favorites'>('profile');
+ useEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerTransparent: true,
+      headerTitle: '',
+    });
+  }, [navigation]);
+  const fetchTraveler = useCallback(async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        Alert.alert(t('error'), t('noUser'));
+        router.replace('/sign-in');
+        return;
+      }
+
+      const travelerDocRef = doc(db, 'Travler', user.uid);
+      const travelerDoc = await getDoc(travelerDocRef);
+
+      if (travelerDoc.exists()) {
+        const data = travelerDoc.data();
+        setTraveler({
+          id: travelerDoc.id,
+          fullName: data.fullName || t('defaultName'),
+          email: data.email || user.email || t('defaultEmail'),
+          bio: data.bio,
+          address: data.address,
+          phone: data.phone,
+          favorites: data.favorites || [], // Initialize favorites
+          profileImage: data.profileImage
+            ? data.profileImage.startsWith('data:image/')
+              ? data.profileImage
+              : `data:image/png;base64,${data.profileImage}`
+            : undefined,
+        });
+      } else {
+        Alert.alert(t('error'), t('noTraveler'));
+        setTraveler(null);
+      }
+    } catch (error: any) {
+      console.error('Error fetching traveler data:', error);
+      Alert.alert(t('error'), t('dataLoadError'));
+    } finally {
+      setLoading(false);
+    }
+  }, [auth, router, t]);
 
   useEffect(() => {
-          navigation.setOptions({
-            headerShown: true,
-            headerTransparent: true,
-            headerTitle: '',
-          });
-    const fetchTravelerData = async () => {
-      try {
-        const user = auth.currentUser;
-        if (!user) {
-          router.replace('/sign-in');
-          return;
-        }
+    fetchTraveler();
+  }, [fetchTraveler]);
 
-        const travelerDocRef = doc(db, 'Travler', user.uid);
-        const travelerDoc = await getDoc(travelerDocRef);
-
-        if (travelerDoc.exists()) {
-          setUserData({
-            name: user.displayName || t('defaultName'),
-            email: user.email || t('defaultEmail'),
-            bio: travelerDoc.data().bio,
-            location: travelerDoc.data().location,
-            travelPreferences: travelerDoc.data().travelPreferences || [],
-          });
-        } else {
-          setUserData({
-            name: user.displayName || t('defaultName'),
-            email: user.email || t('defaultEmail'),
-            travelPreferences: [],
-          });
-        }
-      } catch (error) {
-        Alert.alert(t('error'), t('dataLoadError'));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTravelerData();
-  }, []);
-
-  const handleLogout = () => {
-    signOut(auth)
-      .then(() => router.replace('/sign-in'))
-      .catch((error) => Alert.alert(t('error'), error.message));
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.replace('/sign-in');
+    } catch (error: any) {
+      Alert.alert(t('error'), t('logoutError'));
+    }
   };
 
-  const handleLanguageSelect = (language: string) => {
+  const handleLanguageSelect = useCallback((language: string) => {
     i18n.changeLanguage(language);
     setLanguageModalVisible(false);
-  };
+  }, []);
 
-  const toggleSection = (section: string) => {
-    setActiveSection(activeSection === section ? null : section);
-  };
+  
 
-  const renderMenuItem = (
-    item: { icon: JSX.Element; label: string; action?: () => void },
-    index: number
-  ) => (
-    <TouchableOpacity key={index} style={styles.menuItem} onPress={item.action}>
-      <View style={styles.menuItemIcon}>{item.icon}</View>
-      <Text style={styles.menuItemLabel}>{item.label}</Text>
-    </TouchableOpacity>
+  const renderMenuItem = useCallback(
+    (
+      item: { icon: JSX.Element; label: string; action?: () => void },
+      index: number
+    ) => (
+      <TouchableOpacity
+        key={index}
+        style={styles.menuItem}
+        onPress={item.action}
+        accessibilityLabel={item.label}
+      >
+        <View style={styles.menuItemIcon}>{item.icon}</View>
+        <Text style={styles.menuItemLabel}>{item.label}</Text>
+        <Feather name="chevron-right" size={20} color="#9CA3AF" />
+      </TouchableOpacity>
+    ),
+    []
   );
-
-  const menuItems = [
-    {
-      icon: <Ionicons name="heart-outline" size={24} color="#1F2937" />,
-      label: t('favourites'),
-      action: () => toggleSection('favorites'),
-    },
-    {
-      icon: <Ionicons name="map-outline" size={24} color="#1F2937" />,
-      label: t('savedTrips'),
-      action: () => toggleSection('trips'),
-    },
-    {
-      icon: <Ionicons name="bookmark-outline" size={24} color="#1F2937" />,
-      label: t('bookmarks'),
-      action: () => toggleSection('bookmarks'),
-    },
-  ];
 
   const settingsItems = [
     {
@@ -130,77 +133,32 @@ const navigation = useNavigation();
       action: () => setLanguageModalVisible(true),
     },
     {
-      icon: <Ionicons name="options-outline" size={24} color="#1F2937" />,
-      label: t('travelPreferences'),
-      action: () => toggleSection('preferences'),
+      icon: <Ionicons name="heart-outline" size={24} color="#1F2937" />,
+      label: t('favourites'),
+      
     },
   ];
 
   const appItems = [
     {
-      icon: <AntDesign name="logout" size={24} color="#1F2937" />,
+      icon: <AntDesign name="logout" size={24} color="#EF4444" />,
       label: t('logOut'),
       action: handleLogout,
     },
   ];
 
-  const renderSectionContent = () => {
-    switch (activeSection) {
-      case 'favorites':
-        return (
-          <View style={styles.sectionContent}>
-            <Text style={styles.sectionTitle}>{t('yourFavourites')}</Text>
-            <Text>{t('noFavourites')}</Text>
-          </View>
-        );
-      case 'trips':
-        return (
-          <View style={styles.sectionContent}>
-            <Text style={styles.sectionTitle}>{t('yourTrips')}</Text>
-            <Text>{t('noTrips')}</Text>
-          </View>
-        );
-      case 'bookmarks':
-        return (
-          <View style={styles.sectionContent}>
-            <Text style={styles.sectionTitle}>{t('yourBookmarks')}</Text>
-            <Text>{t('noBookmarks')}</Text>
-          </View>
-        );
-      case 'preferences':
-        return (
-          <View style={styles.sectionContent}>
-            <Text style={styles.sectionTitle}>{t('yourPreferences')}</Text>
-            {userData?.travelPreferences?.length ? (
-              <View style={styles.preferencesContainer}>
-                {userData.travelPreferences.map((pref, index) => (
-                  <Text key={index} style={styles.preferenceTag}>
-                    {pref}
-                  </Text>
-                ))}
-              </View>
-            ) : (
-              <Text>{t('noPreferencesSet')}</Text>
-            )}
-          </View>
-        );
-      default:
-        return null;
-    }
-  };
-
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <ActivityIndicator size="large" style={styles.loader} />
+        <ActivityIndicator size="large" color="#3B82F6" style={styles.loader} />
       </SafeAreaView>
     );
   }
 
-  if (!userData) {
+  if (!traveler) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <Text style={styles.errorText}>{t('dataLoadError')}</Text>
+        <Text style={styles.errorText}>{t('noTraveler')}</Text>
       </SafeAreaView>
     );
   }
@@ -208,69 +166,125 @@ const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.profileSection}>
+        {/* Profile Header */}
+        <View style={styles.profileHeader}>
           <View style={styles.profileImageContainer}>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb' }}
-              style={styles.profileImage}
-            />
-            <TouchableOpacity style={styles.cameraIconContainer}>
+            {traveler.profileImage ? (
+              <Image
+                source={{ uri: traveler.profileImage }}
+                style={styles.profileImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.profileImagePlaceholder}>
+                <Ionicons name="person" size={50} color="#6B7280" />
+              </View>
+            )}
+            <TouchableOpacity
+              style={styles.cameraIconContainer}
+              onPress={() => Alert.alert(t('info'), t('editImagePrompt'))}
+            >
               <Feather name="camera" size={18} color="#fff" />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.profileName}>{userData.name}</Text>
-          <Text style={styles.profileEmail}>{userData.email}</Text>
-          {userData.bio && <Text style={styles.profileBio}>{userData.bio}</Text>}
-          {userData.location && (
-            <View style={styles.locationContainer}>
-              <Ionicons name="location-outline" size={16} color="#6B7280" />
-              <Text style={styles.profileLocation}>{userData.location}</Text>
-            </View>
-          )}
+          <Text style={styles.profileName}>{traveler.fullName}</Text>
+          <Text style={styles.profileEmail}>{traveler.email}</Text>
+        </View>
 
+        {/* Navigation Tabs */}
+        <View style={styles.tabContainer}>
           <TouchableOpacity
-            onPress={() => router.replace('/ProfileTravel/Afficherdata')}
-            style={styles.editButton}
+            style={[styles.tabButton, activeSection === 'profile' && styles.activeTab]}
+           // onPress={() => toggleSection('profile')}
           >
-            <Text style={styles.editButtonText}>{t('editProfile')}</Text>
+            <Text style={[styles.tabText, activeSection === 'profile' && styles.activeTabText]}>
+              {t('profile')}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.menuGroup}>{menuItems.map(renderMenuItem)}</View>
-        {activeSection && renderSectionContent()}
-        <View style={styles.divider} />
+        {/* Profile Content */}
+        {activeSection === 'profile' ? (
+          <View >
+            {traveler.bio && (
+              <View style={styles.infoCard}>
+                <Text style={styles.sectionTitle}>{t('about')}</Text>
+                <Text style={styles.profileBio}>{traveler.bio}</Text>
+              </View>
+            )}
+            <View style={styles.infoCard}>
+              <Text style={styles.sectionTitle}>{t('contactInfo')}</Text>
+              {traveler.phone && (
+                <View style={styles.infoRow}>
+                  <Ionicons name="call-outline" size={20} color="#6B7280" />
+                  <Text style={styles.infoText}>{traveler.phone}</Text>
+                </View>
+              )}
+              {traveler.address && (
+                <View style={styles.infoRow}>
+                  <Ionicons name="location-outline" size={20} color="#6B7280" />
+                  <Text style={styles.infoText}>{traveler.address}</Text>
+                </View>
+              )}
+            </View>
 
-        <View style={styles.menuGroup}>{settingsItems.map(renderMenuItem)}</View>
-        {activeSection && renderSectionContent()}
-        <View style={styles.divider} />
-        <View style={styles.menuGroup}>{appItems.map(renderMenuItem)}</View>
-
-
+            <TouchableOpacity
+              onPress={() => router.push('/ProfileTravel/EditProfileTravel')}
+              style={styles.editButton}
+            >
+              <Text style={styles.editButtonText}>{t('editProfile')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View >
+             <TouchableOpacity                         
+              onPress={() => router.replace('/Trip/Favorites')}>
+              <View style={styles.emptyState}>
+                <Ionicons name="heart-dislike-outline" size={50} color="#9CA3AF" />
+                <Text style={styles.emptyStateText}>{t('noFavorites')}</Text>
+                <Text style={styles.emptyStateSubtext}>{t('noFavoritesHint')}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+        {/* Settings Section */}
+        <View style={styles.settingsSection}>
+          <Text style={styles.settingsTitle}>{t('settings')}</Text>
+          <View style={styles.menuGroup}>{settingsItems.map(renderMenuItem)}</View>
+          <View style={styles.divider} />
+          <View style={styles.menuGroup}>{appItems.map(renderMenuItem)}</View>
+        </View>
+        {/* Language Modal */}
         <Modal
-          animationType="slide"
+          animationType="fade"
           transparent={true}
           visible={languageModalVisible}
           onRequestClose={() => setLanguageModalVisible(false)}
         >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
-              {['en', 'fr', 'ar'].map((lang) => (
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
+                {['en', 'fr'].map((lang) => (
+                  <Pressable
+                    key={lang}
+                    style={styles.modalOption}
+                    onPress={() => handleLanguageSelect(lang)}
+                  >
+                    <Text style={styles.modalOptionText}>{t(`languages.${lang}`)}</Text>
+                    {i18n.language === lang && (
+                      <Ionicons name="checkmark" size={20} color="#10B981" />
+                    )}
+                  </Pressable>
+                ))}
                 <Pressable
-                  key={lang}
-                  style={styles.modalOption}
-                  onPress={() => handleLanguageSelect(lang)}
+                  style={styles.modalClose}
+                  onPress={() => setLanguageModalVisible(false)}
                 >
-                  <Text>{t(`languages.${lang}`)}</Text>
-                  {i18n.language === lang && (
-                    <Ionicons name="checkmark" size={20} color="green" />
-                  )}
+                  <Text style={styles.modalCloseText}>{t('close')}</Text>
                 </Pressable>
-              ))}
-              <Pressable style={styles.modalClose} onPress={() => setLanguageModalVisible(false)}>
-                <Text style={styles.modalCloseText}>{t('close')}</Text>
-              </Pressable>
+              </View>
             </View>
           </View>
         </Modal>

@@ -6,7 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../configs/FirebaseConfig';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import styles from '../../src/styles/business-owner/EditProfileScreenStyles';
+import styles from '../../src/styles/business-owner/editProfilScreenStyles';
 
 interface businessData {
   name: string;
@@ -18,9 +18,6 @@ interface businessData {
   fullName: string;
   website: string;
   profileImage?: string;
-  profileImages?: string[];
-  createdAt?: any;
-  updatedAt?: any;
 }
 
 export default function  EditProfilebuss () {
@@ -67,14 +64,8 @@ export default function  EditProfilebuss () {
             fullName: data.fullName || '',
             website: data.website || '',
             profileImage: data.profileImage || '',
-            profileImages: data.profileImages || []
           });
           // Set the first image if available
-          if (data.profileImages?.length) {
-            setImageUri(data.profileImages[0]);
-          } else if (data.profileImage) {
-            setImageUri(data.profileImage);
-          }
         } else {
           Alert.alert('Error', 'business profile not found');
         }
@@ -92,22 +83,7 @@ export default function  EditProfilebuss () {
   const handleImageError = () => {
     setImageError(true);
   };
-
-  const getImageSource = () => {
-    if (imageError) {
-      return require('../../assets/images/tunis.png');
-    }
-    if (imageUri) {
-      return { uri: imageUri };
-    }
-    if (businessData.profileImages?.length) {
-      return { uri: businessData.profileImages[0] };
-    }
-    if (businessData.profileImage) {
-      return { uri: businessData.profileImage };
-    }
-    return require('../../assets/images/tunis.png');
-  };
+  
 
   const handleImagePick = async () => {
     try {
@@ -205,7 +181,7 @@ export default function  EditProfilebuss () {
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.replace('/ProfileBuisness/Afficherdata')}>
+        <TouchableOpacity onPress={() => router.replace('/business-owner/BusinessProfile')}>
           <Ionicons name="arrow-back" size={24} color="#292C31FF" />
         </TouchableOpacity>
         <TouchableOpacity onPress={showSaveConfirmation} disabled={updating}>
@@ -220,7 +196,6 @@ export default function  EditProfilebuss () {
       {/* Profile Image */}
       <TouchableOpacity style={styles.imageContainer} onPress={handleImagePick}>
         <Image
-          source={getImageSource()}
           style={styles.profileImage}
           onError={handleImageError}
           resizeMode="cover"
@@ -343,7 +318,7 @@ export default function  EditProfilebuss () {
                 {updating ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text style={styles.modalButtonPrimaryText}>Save Changes</Text>
+                  <Text >Save Changes</Text>
                 )}
               </Pressable>
             </View>

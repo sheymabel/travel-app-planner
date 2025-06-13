@@ -1,236 +1,150 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, Alert, Modal, Pressable, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons,  Feather, AntDesign, MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { getAuth, signOut } from 'firebase/auth';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, ScrollView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { getAuth } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../configs/FirebaseConfig';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import i18n from '../../src/utils/i18n';
-import styles from '../../src/styles/business-owner/ProfileScreen.styles';
+import styles from '../../src/styles/business-owner/editProfilScreenStyles';
 
-export default function  ProfileScreen  ()  {
+interface BusinessData {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  description: string;
+  category: string;
+  city: string;
+  website: string;
+  profileImage?: string; // Base64 string
+}
+
+export default function BusinessProfile() {
   const { t } = useTranslation();
+  const [loading, setLoading] = useState(true);
+  const [businessData, setBusinessData] = useState<BusinessData | null>(null);
+  const [imageError, setImageError] = useState(false);
   const router = useRouter();
   const auth = getAuth();
-  
-  const [userData, setUserData] = useState<{
-    fullName: string;
-    email: string;
-    businessName: string;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [languageModalVisible, setLanguageModalVisible] = useState(false);
-  const [activeSection, setActiveSection] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchbusinessData = async () => {
+    const fetchBusinessData = async () => {
       try {
         const user = auth.currentUser;
         if (!user) {
+          Alert.alert(t('error'), t('business.notAuthenticated'));
           router.replace('/sign-in');
           return;
         }
 
-        const businessDocRef = doc(db, 'business', user.uid);
-        const businessDoc = await getDoc(businessDocRef);
+        const docRef = doc(db, 'business', user.uid);
+        const docSnap = await getDoc(docRef);
 
-        if (businessDoc.exists()) {
-          setUserData({
-            fullName: user.displayName || t('defaultName'),
-            email: user.email || t('defaultEmail'),
-            businessName: businessDoc.data().businessName || t('defaultbusinessName')
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setBusinessData({
+            name: data.name || t('business.noData'),
+            email: data.email || t('business.noData'),
+            phone: data.phone || t('business.noData'),
+            address: data.address || t('business.noData'),
+            description: data.description || t('business.noData'),
+            category: data.category || t('business.noData'),
+            city: data.city || t('business.noData'),
+            website: data.website || t('business.noData'),
+            profileImage: data.profileImage || '',
           });
         } else {
-          setUserData({
-            fullName: user.displayName || t('defaultName'),
-            email: user.email || t('defaultEmail'),
-            businessName: t('defaultbusinessName')
-          });
+          Alert.alert(t('error'), t('business.profileNotFound'));
+          router.replace('/ProfileBuisness/EditProfilebuss');
+          setBusinessData(null);
         }
       } catch (error) {
-        Alert.alert(t('error'), t('dataLoadError'));
+        console.error('Error fetching business data:', error);
+        Alert.alert(t('error'), t('business.loadFailed'));
+        setBusinessData(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchbusinessData();
-  }, []);
+    fetchBusinessData();
+  }, [t, router, auth]);
 
-  const handleLogout = () => {
-    signOut(auth)
-      .then(() => router.replace('/sign-in'))
-      .catch((error) => Alert.alert(t('error'), error.message));
+  const handleImageError = () => {
+    setImageError(true);
   };
 
-  const handleLanguageSelect = (language: string) => {
-    i18n.changeLanguage(language);
-    setLanguageModalVisible(false);
-  };
-
-  const toggleSection = (section: string) => {
-    setActiveSection(activeSection === section ? null : section);
-  };
-
-  const renderMenuItem = (
-    item: { icon: JSX.Element; label: string; action?: () => void }, 
-    index: number
-  ) => (
-    <TouchableOpacity key={index} style={styles.menuItem} onPress={item.action}>
-      <View style={styles.menuItemIcon}>
-        {item.icon}
-      </View>
-      <Text style={styles.menuItemLabel}>{item.label}</Text>
-    </TouchableOpacity>
-  );
-
-  const menuItems = [
-    { 
-      icon: <Ionicons name="heart-outline" size={24} color="#1F2937" />, 
-      label: t('favourites'),
-      action: () => toggleSection('favorites')
-    },
-    { 
-      icon: <Ionicons name="download-outline" size={24} color="#1F2937" />, 
-      label: t('downloads'),
-      action: () => toggleSection('downloads')
-    },
-  ];
-
-  const settingsItems = [
-    { 
-      icon: <MaterialIcons name="language" size={24} color="#1F2937" />, 
-      label: t('languages'),
-      action: () => setLanguageModalVisible(true)
-    },
-    { 
-      icon: <Ionicons name="location-outline" size={24} color="#1F2937" />, 
-      label: t('location'),
-      action: () => toggleSection('location')
-    },
-  ];
-
-  const appItems = [
-    { 
-      icon: <AntDesign name="logout" size={24} color="#1F2937" />, 
-      label: t('logOut'), 
-      action: handleLogout 
-    },
-  ];
-
-  const renderSectionContent = () => {    
-    switch (activeSection) {
-      case 'favorites':
-        return (
-          <View style={styles.sectionContent}>
-            <Text style={styles.sectionTitle}>{t('yourFavourites')}</Text>
-            <Text>{t('noFavourites')}</Text>
-          </View>
-        );
-      case 'downloads':
-        return (
-          <View style={styles.sectionContent}>
-            <Text style={styles.sectionTitle}>{t('yourDownloads')}</Text>
-            <Text>{t('noDownloads')}</Text>
-          </View>
-        );
-      case 'location':
-        return (
-          <View style={styles.sectionContent}>
-            <Text style={styles.sectionTitle}>{t('locationSettings')}</Text>
-            <Text>{t('currentLocation')}: {t('notSet')}</Text>
-          </View>
-        );
-      default:
-        return null;
+  const getImageSource = () => {
+    if (imageError || !businessData?.profileImage) {
+      return require('../../assets/images/tunis.png');
     }
+    return { uri: businessData.profileImage };
   };
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <ActivityIndicator size="large" style={styles.loader} />
-      </SafeAreaView>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#82B6F1FF" />
+        <Text style={styles.loadingText}>{t('business.loadingProfile')}</Text>
+      </View>
     );
   }
 
-  if (!userData) {
+  if (!businessData) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <Text style={styles.errorText}>{t('dataLoadError')}</Text>
-      </SafeAreaView>
+      <View style={styles.loadingContainer}>
+        <Text style={styles.noDataText}>{t('business.noBusinessData')}</Text>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.profileSection}>
-          <View style={styles.profileImageContainer}>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb' }}
-              style={styles.profileImage}
-            />
-            <TouchableOpacity style={styles.cameraIconContainer}>
-              <Feather name="camera" size={18} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          
-          <Text style={styles.profileName}>{userData.businessName}</Text>
-          <Text style={styles.profileEmail}>{userData.email}</Text>
-          <Text style={styles.ownerName}>{userData.fullName}</Text>
-
-          <TouchableOpacity
-            onPress={() => router.replace('/ProfileBuisness/Afficherdata')}
-            style={styles.editButton}
-          >
-            <Text style={styles.editButtonText}>{t('editProfile')}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.menuGroup}>{menuItems.map(renderMenuItem)}</View>
-        {activeSection && renderSectionContent()}
-        <View style={styles.divider} />
-
-        <View style={styles.menuGroup}>{settingsItems.map(renderMenuItem)}</View>
-        {activeSection && renderSectionContent()}
-        <View style={styles.divider} />
-        <View style={styles.menuGroup}>{appItems.map(renderMenuItem)}</View>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={languageModalVisible}
-          onRequestClose={() => setLanguageModalVisible(false)}
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.replace('/ProfileBuisness/EditProfilebuss')}
+          style={styles.editButton}
         >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
-              {['en', 'fr', 'ar'].map((lang) => (
-                <Pressable
-                  key={lang}
-                  style={styles.modalOption}
-                  onPress={() => handleLanguageSelect(lang)}
-                >
-                  <Text>{t(`languages.${lang}`)}</Text>
-                  {i18n.language === lang && (
-                    <Ionicons name="checkmark" size={20} color="green" />
-                  )}
-                </Pressable>
-              ))}
-              <Pressable
-                style={styles.modalClose}
-                onPress={() => setLanguageModalVisible(false)}
-              >
-                <Text style={styles.modalCloseText}>{t('close')}</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
+          <Text style={styles.editButtonText}>{t('Edit')}</Text>
+        </TouchableOpacity>
+      </View>
 
- 
+      {/* Profile Image */}
+      <View style={styles.imageContainer}>
+        <Image
+          source={getImageSource()}
+          style={styles.profileImage}
+          onError={handleImageError}
+          resizeMode="cover"
+          accessibilityLabel={t('profileImage')}
+        />
+      </View>
+
+      {/* Owner Information Card */}
+      <View style={styles.infoCard}>
+        <Text style={styles.sectionTitle}>{t('Information')}</Text>
+        <View style={styles.infoRow}>
+          <Ionicons name="person-outline" size={18} color="#666" />
+          <Text style={styles.infoText}>{businessData.name}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Ionicons name="mail-outline" size={18} color="#666" />
+          <Text style={styles.infoText}>{businessData.email}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Ionicons name="call-outline" size={18} color="#666" />
+          <Text style={styles.infoText}>{businessData.phone}</Text>
+        </View>
+      </View>
+
+     
+      {/* Description Card */}
+      <View style={styles.infoCard}>
+        <Text style={styles.sectionTitle}>{t('business.aboutUs')}</Text>
+        <Text style={styles.descriptionText}>{businessData.description}</Text>
+      </View>
+    </ScrollView>
+  );
+}

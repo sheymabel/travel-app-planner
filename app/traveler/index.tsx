@@ -1,117 +1,230 @@
-import { StyleSheet, Text, View, TextInput, ScrollView, ImageBackground, TouchableOpacity, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { styles } from '../../src/styles/styles';
-import {  Stack } from 'expo-router';
-import  { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { db, auth } from '../../configs/FirebaseConfig'; // adapte ce chemin à ta config Firebase
+import { Colors } from '../../constants/Colors'; // adapte ou remplace par tes couleurs
 import { useNavigation, useRouter } from 'expo-router';
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.55;
-const SMALL_CARD_WIDTH = width * 0.4;
-const popularLocations1 = [
-  { id: '1', name: 'Monastir', price: 689, rating: 4.9, image: 'https://images.unsplash.com/photo-1581015102891-1a16854854a7?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '2', name: 'Tunis', price: 726, rating: null, image: 'https://images.unsplash.com/photo-1583253066701-c4f6e7f5439e?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '3', name: 'Sousse', price: 550, rating: 4.7, image: 'https://images.unsplash.com/photo-1604969774433-86bc8f4a1b5d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-];
 
-const popularLocations2 = [
-  { id: '1', name: 'Bizerte', locations: 16, image: 'https://images.unsplash.com/photo-1604580863011-f41c0f5b8e1d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '2', name: 'Aïn Draham', locations: 22, image: 'https://images.unsplash.com/photo-1517479149777-5f3b15118e8c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-  { id: '3', name: 'Sidi Bou Said', locations: 12, image: 'https://images.unsplash.com/photo-1580502377239-07ff586c056a?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
-];
+interface Service {
+  id: string;
+  title?: string;
+  name?: string;
+  image?: string;
+  images?: string[];
+  duration?: string;
+  price?: string | number;
+  rating?: number;
+  businessId?: string;
+}
 
-export default function HomeScreen() {
+interface Trip {
+  id: string;
+  city?: string;
+  governorate?: string;
+  delegation?: string;
+  travelType?: string;
+  selectedDates?: string[];
+}
 
-    const router = useRouter();
-    const [user, setUser] = useState(null);
-      const navigation = useNavigation();
-      
-      useEffect(() => {
-          navigation.setOptions({
-            headerShown: true,
-            headerTransparent: true,
-            headerTitle: '',
+interface Business {
+  id: string;
+  name: string;
+  city: string;
+  services: Service[];
+}
+
+export default function Discover() {
+  const [userId, setUserId] = useState<string | null>(null);
+  const [travelerCities, setTravelerCities] = useState<string[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
+    const navigation = useNavigation();
+
+  useEffect(() => {
+   
+         navigation.setOptions({
+          headerShown: true,
+          headerTransparent: true,
+          headerTitle: '',
+        });
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        setUserId(user.uid);
+      } else {
+        setUserId(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) {
+      setBusinesses([]);
+      setLoading(false);
+      return;
+    }
+
+    async function fetchData() {
+      setLoading(true);
+      try {
+        // 1. Récupérer trips du voyageur
+        const tripRef = collection(db, 'trip');
+        const tripQuery = query(tripRef, where('userId', '==', userId));
+        const tripSnapshot = await getDocs(tripQuery);
+
+        const citiesSet = new Set<string>();
+        tripSnapshot.forEach(doc => {
+          const data = doc.data() as Trip;
+          // Choisir city, governorate, ou delegation
+          const city = data.city || data.governorate || data.delegation;
+          if (city) {
+            citiesSet.add(city.toString().toLowerCase());
+          }
+        });
+        const citiesArray = Array.from(citiesSet);
+        setTravelerCities(citiesArray);
+
+        if (citiesArray.length === 0) {
+          setBusinesses([]);
+          setLoading(false);
+          return;
+        }
+
+        // 2. Récupérer businesses dans ces villes
+        const businessRef = collection(db, 'business');
+        const businessSnapshot = await getDocs(businessRef);
+
+        const matchedBusinesses = businessSnapshot.docs
+          .map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              name: data.name,
+              city: data.city,
+            };
+          })
+          .filter(business =>
+            business.city &&
+            citiesArray.includes(business.city.toLowerCase())
+          );
+
+        // 3. Récupérer services pour chaque business filtré
+        const businessesWithServices: Business[] = [];
+
+        for (const business of matchedBusinesses) {
+          const servicesRef = collection(db, 'business', business.id, 'services');
+          const servicesSnapshot = await getDocs(servicesRef);
+
+          const services = servicesSnapshot.docs.map(snap => {
+            const data = snap.data();
+            return {
+              id: snap.id,
+              title: data.title,
+              name: data.name,
+              image: data.image,
+              images: data.images,
+              duration: data.duration,
+              price: data.price,
+              rating: data.rating,
+              businessId: business.id,
+            };
+          }) as Service[];
+
+          businessesWithServices.push({
+            id: business.id,
+            name: business.name,
+            city: business.city,
+            services,
           });
         }
-        , []);
+
+        setBusinesses(businessesWithServices);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des données :', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color={Colors.primary || 'blue'} />
+      </View>
+    );
+  }
+
+  if (!userId) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Veuillez vous connecter pour découvrir les services.</Text>
+      </View>
+    );
+  }
+
+  if (businesses.length === 0) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Services disponibles</Text>
+        <Text>Aucun business trouvé dans vos villes de voyage.</Text>
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.subHeader}>Find your next trip</Text>
-        <Text style={styles.header}>Nordic scenery</Text>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
+      <Text style={styles.title}>Services dans vos villes de voyage</Text>
 
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBox}>
-            <Feather name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
-            <TextInput
-              placeholder="Search"
-              placeholderTextColor="#9CA3AF"
-              style={styles.searchInput}
-            />
-          </View>
-          <TouchableOpacity style={styles.filterButton}>
-            <Ionicons name="options-outline" size={24} color="white" />
-          </TouchableOpacity>
+      {businesses.map(business => (
+        <View key={business.id} style={styles.businessSection}>
+          <Text style={styles.businessName}>{business.name} ({business.city})</Text>
+
+          {business.services.length === 0 ? (
+            <Text>Aucun service disponible</Text>
+          ) : (
+            business.services.map(service => {
+              const serviceTitle = service.title || service.name || 'Service sans nom';
+              const imageUrl = service.image || (service.images && service.images[0]) || null;
+              const priceNumber = typeof service.price === 'string' ? parseFloat(service.price) : service.price;
+
+              return (
+                <View key={service.id} style={styles.serviceCard}>
+                  {imageUrl && (
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={styles.serviceImage}
+                      resizeMode="cover"
+                    />
+                  )}
+                  <Text style={styles.serviceName}>{serviceTitle}</Text>
+                  {service.duration && <Text>Durée : {service.duration}</Text>}
+                  {priceNumber !== undefined && !isNaN(priceNumber) && (
+                    <Text>Prix : ${priceNumber.toFixed(2)}</Text>
+                  )}
+                  {service.rating !== undefined && (
+                    <Text>Note : {service.rating} / 5</Text>
+                  )}
+                </View>
+              );
+            })
+          )}
         </View>
-
-        <Text style={styles.sectionTitle}>Popular locations</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalScroll}
-          snapToInterval={CARD_WIDTH + 16}
-          decelerationRate="fast"
-        >
-          {popularLocations1.map((location) => (
-            <TouchableOpacity key={location.id} style={[styles.card, { width: CARD_WIDTH }]}>
-              <ImageBackground
-                source={{ uri: location.image }}
-                style={styles.cardImage}
-                imageStyle={styles.cardImageStyle}
-              >
-                <View style={styles.cardOverlay}>
-                  <Text style={styles.cardTitle}>{location.name}</Text>
-                  <View style={styles.cardBottomRow}>
-                    <Text style={styles.cardPrice}>from ${location.price}</Text>
-                    {location.rating && (
-                      <View style={styles.cardRating}>
-                        <Text style={styles.cardRatingText}>{location.rating}</Text>
-                        <Ionicons name="star" size={14} color="#FFD700" />
-                      </View>
-                    )}
-                  </View>
-                </View>
-              </ImageBackground>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <Text style={styles.sectionTitle}>Popular locations</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalScroll}
-          snapToInterval={SMALL_CARD_WIDTH + 16}
-          decelerationRate="fast"
-        >
-          {popularLocations2.map((location) => (
-            <TouchableOpacity key={location.id} style={[styles.smallCard, { width: SMALL_CARD_WIDTH }]}>
-              <ImageBackground
-                source={{ uri: location.image }}
-                style={styles.smallCardImage}
-                imageStyle={styles.smallCardImageStyle}
-              >
-                <View style={styles.smallCardOverlay}>
-                  <Text style={styles.smallCardTitle}>{location.name}</Text>
-                  <Text style={styles.smallCardLocations}>{location.locations} locations</Text>
-                </View>
-              </ImageBackground>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </ScrollView>
-    </SafeAreaView>
+      ))}
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16, color: '#007AFF' },
+  businessSection: { marginBottom: 30 },
+  businessName: { fontSize: 20, fontWeight: '600', marginBottom: 12 },
+  serviceCard: { marginBottom: 16, backgroundColor: '#F0F0F0', padding: 12, borderRadius: 10 },
+  serviceImage: { width: '100%', height: 140, borderRadius: 8, marginBottom: 8 },
+  serviceName: { fontSize: 18, fontWeight: '500' },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+});
