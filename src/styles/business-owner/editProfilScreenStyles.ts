@@ -1,11 +1,21 @@
+import { Colors } from '../../../constants/Colors';
+
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: '#FCFCFCFF',
-    paddingBottom: 30,
   },
+   safeArea: {
+    flex: 1,
+
+  },
+   title: {
+      fontSize: 25,
+      fontWeight: '600',
+      color: Colors.gray[800], // Approximating #212529
+    },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -18,6 +28,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
   },
+  inner: {
+    flex: 1,
+    padding: 4,
+  },
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
@@ -26,14 +40,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   editButton: {
-    backgroundColor: 'white',
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    borderRadius: 20,
+    backgroundColor: '#4263eb',
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+    shadowColor: '#4263eb',
+    shadowOffset: { width: 14, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 3,
   },
   editButtonText: {
-    color: '#4A90E2',
-    fontSize: 14,
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '600',
   },
   imageContainer: {
@@ -52,8 +72,8 @@ const styles = StyleSheet.create({
   },
   cameraIcon: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
+    bottom: 5,
+    right: 100,
     backgroundColor: '#4A90E2',
     borderRadius: 15,
     padding: 5,

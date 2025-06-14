@@ -22,7 +22,7 @@ import styles from '../../src/styles/business-owner/editProfilScreenStyles';
 // Interface for Business Profile
 interface BusinessData {
   id: string; // Firestore document ID
-  name: string;
+  name: string; // Updated from fullName to name
   email: string;
   phone: string;
   businessAddress: string;
@@ -40,14 +40,14 @@ export default function EditProfileBusiness() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [businessData, setBusinessData] = useState<BusinessData>({
     id: '',
-    name: 'sheyma',
-    email: 'sheyma@gmail.com',
-    phone: '+12345678900',
-    businessAddress: '123 New Street, City',
-    category: 'Utilitaire',
-    city: 'Sfax Ville, Sfax',
-    description: 'Best restaurant in town',
-    profileImage: '',
+    name: 'hedi', // Updated from previous default
+    email: 'hedi@gmail.com', // Updated from sheyma@gmail.com
+    phone: '+12345678900', // Matches your input
+    businessAddress: 'tunis', // Updated from 123 New Street, City
+    category: 'Utilitaire', // Matches your input
+    city: 'Sfax Ville, Sfax', // Matches your input
+    description: 'Best restaurant in town', // Matches your input
+    profileImage: '', // Initialized as empty string (no base64 data yet)
   });
   const [imageUri, setImageUri] = useState<string | null>(null);
 
@@ -64,7 +64,7 @@ export default function EditProfileBusiness() {
         const snap = await getDoc(doc(db, 'Business', user.uid));
         if (!snap.exists()) {
           Alert.alert('Error', 'Business profile not found');
-          setBusinessData({ ...businessData, id: user.uid, email: user.email || 'sheyma@gmail.com' });
+          setBusinessData({ ...businessData, id: user.uid, email: user.email || 'hedi@gmail.com' });
         } else {
           const data = snap.data() as Omit<BusinessData, 'id'>;
           setBusinessData({ id: snap.id, ...data });
@@ -172,17 +172,17 @@ export default function EditProfileBusiness() {
       </TouchableOpacity>
 
       {/* Form Fields */}
-      {(['name', 'email', 'phone', 'businessAddress', 'category', 'city', 'description'] as (keyof Omit<BusinessData, 'id' | 'profileImage'>)[]).map(
-        (field, i) => (
-          <View style={styles.formGroup} key={i}>
+      {(['name', 'email', 'phone', 'businessAddress', 'category', 'city', 'description'] as const).map(
+        (field) => (
+          <View style={styles.formGroup} key={field}>
             <Text style={styles.label}>
               {field === 'businessAddress' ? 'Business Address' : field.charAt(0).toUpperCase() + field.slice(1)}
               {['name', 'email'].includes(field) ? '*' : ''}
             </Text>
             <TextInput
               style={[styles.input, field === 'description' && styles.multilineInput]}
-              value={businessData[field] || ''}
-              onChangeText={(text) => setBusinessData({ ...businessData, [field]: text })}
+              value={businessData[field]}
+              onChangeText={(text) => setBusinessData((prev) => ({ ...prev, [field]: text }))} // Functional update
               placeholder={`Enter ${field === 'name' ? 'name' : field}`}
               keyboardType={
                 field === 'email' ? 'email-address' : field === 'phone' ? 'phone-pad' : 'default'

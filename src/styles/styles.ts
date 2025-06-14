@@ -13,18 +13,18 @@ export const styles = StyleSheet.create({
     paddingBottom: 100, // Space for bottom nav
   },
   subHeader: {
-    fontSize: 16,
-    color: '#3F566EFF',
+    fontSize: 25,
     fontWeight: '500',
-    marginTop: 10,
-    marginLeft: 20,
+    color: Colors.gray[800], // Approximating #212529
+    marginBottom: 12,
   },
   header: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.primary,
+
+    fontSize: 25,
+    fontWeight: '600',
+    color: Colors.gray[800], // Approximating #212529
+    marginBottom: 12,
     marginLeft: 20,
-    marginBottom: 20,
   },
   searchContainer: {
     flexDirection: 'row',

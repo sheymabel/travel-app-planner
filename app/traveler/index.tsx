@@ -7,12 +7,26 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { styles } from '../../src/styles/styles';
 import { useState, useEffect } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
-const { width, height } = Dimensions.get('window');
-const CARD_HEIGHT = height * 0.89;
-const CARD_WIDTH = width * 0.89;
+// Sample scaling function for font sizes
+const scaleFont = (size: number) => {
+  const { width } = Dimensions.get('window');
+  return size * (width / 375); // Scale based on a 375px baseline (iPhone 6/7/8 width)
+};
 
-const SMALL_CARD_WIDTH = width * 0.4;
+// Sample scaling function for dimensions
+const scaleDimension = (size: number) => {
+  const { width } = Dimensions.get('window');
+  return size * (width / 375);
+};
 
+// Get screen dimensions
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// Define responsive constants
+const CARD_WIDTH = SCREEN_WIDTH * 0.90; // 85% of screen width for cards
+const CARD_HEIGHT = SCREEN_HEIGHT * 0.25; // 25% of screen height for cards
+const MARGIN = SCREEN_WIDTH * 0.03; // 3% margin
+const PADDING = SCREEN_WIDTH * 0.03; // 3% padding
 
 const services = [
   {
@@ -100,7 +114,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.header}>Nordic scenery</Text>
+        <Text style={styles.header}>Servies </Text>
         <View style={styles.searchContainer}>
           <View style={styles.searchBox}>
             <Feather name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />

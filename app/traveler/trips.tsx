@@ -120,9 +120,6 @@ export default function TripScreen() {
       <View style={styles.inner}>
         <View style={styles.header}>
           <Text style={styles.title} accessible={false}>My Trips</Text>
-          <TouchableOpacity>
-            <Ionicons name="add-circle" size={40} color={Colors.primary} />
-          </TouchableOpacity>
         </View>
 
         {userTrips.length === 0 ? (
@@ -160,7 +157,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 25,
   },
-  title: {
+   title: {
     fontSize: 25,
     fontWeight: '600',
     color: Colors.gray[800], // Approximating #212529

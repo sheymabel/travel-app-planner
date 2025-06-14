@@ -21,7 +21,7 @@ export default function TravelerLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'services',
+          title: 'Services',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),
