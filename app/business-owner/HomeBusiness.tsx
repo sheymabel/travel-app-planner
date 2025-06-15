@@ -177,9 +177,9 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.gray[300],
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: Colors.gray[900],
+    flex: 1,
   },
   filterButton: {
     position: 'absolute',

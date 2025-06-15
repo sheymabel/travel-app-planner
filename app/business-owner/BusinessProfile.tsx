@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import styles from '../../src/styles/business-owner/editProfilScreenStyles';
 
 interface BusinessData {
-  name: string;
+  fullName: string;
   email: string;
   phone: string;
   address: string;
@@ -45,7 +45,7 @@ export default function BusinessProfile() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setBusinessData({
-            name: data.name || t('business.noData'),
+            fullName: data.fullName || t('business.noData'),
             email: data.email || t('business.noData'),
             phone: data.phone || t('business.noData'),
             address: data.address || t('business.noData'),
@@ -145,7 +145,7 @@ export default function BusinessProfile() {
         <Text style={styles.sectionTitle}>{t('Information')}</Text>
         <View style={styles.infoRow}>
           <Ionicons name="person-outline" size={18} color="#666" />
-          <Text style={styles.infoText}>{businessData.name}</Text>
+          <Text style={styles.infoText}>{businessData.fullName}</Text>
         </View>
         <View style={styles.infoRow}>
           <Ionicons name="mail-outline" size={18} color="#666" />
@@ -176,7 +176,7 @@ export default function BusinessProfile() {
               onPress={() => router.push('/ProfileBuisness/EditProfilebuss')}
               style={styles.editButton}
             >
-              <Text style={styles.editButtonText}>{t('EditProfile')}</Text>
+              <Text style={styles.editButtonText}>{t('Edit Profile')}</Text>
             </TouchableOpacity>
       {/* Description Card */}
       <View style={styles.infoCard}>

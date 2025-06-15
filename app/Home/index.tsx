@@ -33,11 +33,6 @@ export default function SearchPlace() {
 
   useEffect(() => {
     async function fetchCities() {
-      if (searchText.trim().length === 0) {
-        setCities([]);
-        return;
-      }
-
       try {
         const citiesRef = collection(db, 'cities');
         const snapshot = await getDocs(citiesRef);
@@ -45,7 +40,11 @@ export default function SearchPlace() {
 
         snapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
           const data = doc.data();
-          if (data.city?.toLowerCase().includes(searchText.toLowerCase())) {
+          // Only filter if searchText is non-empty
+          if (
+            searchText.trim().length === 0 ||
+            data.city?.toLowerCase().includes(searchText.toLowerCase())
+          ) {
             results.push({
               id: doc.id,
               city: data.city,
@@ -137,7 +136,11 @@ export default function SearchPlace() {
         ) : (
           <View style={styles.emptyState}>
             <Feather name="map" size={48} color="#E5E7EB" />
-            <Text style={styles.emptyText}>Search to discover cities</Text>
+            <Text style={styles.emptyText}>
+              {searchText.trim().length === 0
+                ? 'Loading cities...'
+                : 'No cities found'}
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -188,6 +191,7 @@ export default function SearchPlace() {
   );
 }
 
+// Styles remain the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,

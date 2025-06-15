@@ -33,29 +33,40 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 22,
+   fontSize: 22,
     fontWeight: 'bold',
-    color: '#24282EFF',
     flex: 1,
-    textAlign: 'center',
   },
   editButton: {
-    backgroundColor: '#4263eb',
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-    shadowColor: '#4263eb',
-    shadowOffset: { width: 14, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  editButtonText: {
+  backgroundColor: '#4263eb',
+  paddingVertical: 14,
+  paddingHorizontal: 1,
+  borderRadius: 10,
+ alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  marginTop: 10,         // space above the button
+  marginBottom: 10,      // space below the button
+  marginHorizontal: 99,  // horizontal spacing (left & right)
+  width: '50%',
+  shadowColor: '#4263eb',
+  shadowOffset: { width: 0, height: 5 },
+  shadowOpacity: 0.25,
+  shadowRadius: 6,
+  elevation: 3,
+}, 
+ editButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  }, 
+buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
+
+
   imageContainer: {
     alignItems: 'center',
     marginTop: 50,
