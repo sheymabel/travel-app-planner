@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   View,
   Text,
@@ -15,6 +14,8 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
+  collection,
+  getDocs,
   deleteDoc,
   doc
 } from 'firebase/firestore';
@@ -31,7 +32,7 @@ interface Service {
   rating?: string;
   reviews?: string;
   status?: string;
-  images?: string[];
+  imageUrl?: string; // Could be base64 or API URL
   price?: string;
   duration?: string;
 }
@@ -52,10 +53,14 @@ export default function ServiceManagementScreen() {
           return;
         }
 
-        const API_URL = `http://localhost:5000/api/service/business/${user.uid}`;
-        const response:any = await axios.get(API_URL);
-        console.log('Services:', response.data);
-        setServices(response.data);
+        const servicesCollection = collection(db, 'business', user.uid, 'services');
+        const snapshot = await getDocs(servicesCollection);
+        const servicesData = snapshot.docs.map((doc) => {
+          const data = doc.data() as Omit<Service, 'id'>;
+          console.log('Full Service data:', { id: doc.id, ...data }); // Detailed debug log
+          return { id: doc.id, ...data };
+        });
+        setServices(servicesData);
       } catch (error) {
         console.error('Error fetching data:', error);
         Alert.alert('Error', 'Failed to fetch services.');
@@ -84,8 +89,32 @@ export default function ServiceManagementScreen() {
     }
   };
 
+  const isBase64 = (str: string) => {
+    // Check if string is a valid base64 URI (starts with data:image/ and has base64 data)
+    return str && str.startsWith('data:image/') && str.includes('base64,');
+  };
+
+  const isApiUrl = (str: string) => {
+    // Simple check for common API URL patterns (e.g., http/https)
+    return str && (str.startsWith('http://') || str.startsWith('https://'));
+  };
+
   const ServiceCard = ({ service }: { service: Service }) => {
-    const imageUri = service.images?.[0] || 'https://placehold.co/150x150/png';
+    // Test and set imageUri based on type
+    let imageUri = 'https://placehold.co/150x150/png';
+    if (service.imageUrl) {
+      if (isBase64(service.imageUrl)) {
+        imageUri = service.imageUrl;
+        console.log('Detected as Base64 for', service.name, ':', service.imageUrl.substring(0, 50) + '...');
+      } else if (isApiUrl(service.imageUrl)) {
+        imageUri = service.imageUrl;
+        console.log('Detected as API URL for', service.name, ':', service.imageUrl);
+      } else {
+        console.log('Invalid imageUrl for', service.name, ':', service.imageUrl, '- Using placeholder');
+      }
+    } else {
+      console.log('No imageUrl for', service.name, '- Using placeholder');
+    }
 
     return (
       <View style={styles.card}>
@@ -106,8 +135,8 @@ export default function ServiceManagementScreen() {
             source={{ uri: imageUri }}
             style={imageStyles.serviceImage}
             resizeMode="cover"
+            onError={(e) => console.log('Image load error for', service.name, ':', e.nativeEvent.error)}
           />
-
           <View style={styles.serviceDetails}>
             <Text style={styles.serviceName}>{service.name}</Text>
             <View style={styles.priceDurationContainer}>

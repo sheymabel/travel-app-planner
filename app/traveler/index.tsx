@@ -1,165 +1,187 @@
-import {  Text, View, TextInput, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
-
+import React, { useEffect, useState } from 'react';
+import {
+  SafeAreaView,
+  ScrollView,
+  View,
+  Text,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  Dimensions,
+  ActivityIndicator,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Feather, Ionicons } from '@expo/vector-icons';
-import { styles } from '../../src/styles/styles';
-import { useState, useEffect } from 'react';
-import { useNavigation, useRouter } from 'expo-router';
-// Sample scaling function for font sizes
-const scaleFont = (size: number) => {
-  const { width } = Dimensions.get('window');
-  return size * (width / 375); // Scale based on a 375px baseline (iPhone 6/7/8 width)
-};
+import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from '../../configs/FirebaseConfig'; // your firebase config file
+import { styles } from '../../src/styles/styles'; // your styles
 
-// Sample scaling function for dimensions
-const scaleDimension = (size: number) => {
-  const { width } = Dimensions.get('window');
-  return size * (width / 375);
-};
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = SCREEN_WIDTH * 0.9;
 
-// Get screen dimensions
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+interface Business {
+  id: string;
+  name: string;
+  location?: string;
+}
 
-// Define responsive constants
-const CARD_WIDTH = SCREEN_WIDTH * 0.90; // 85% of screen width for cards
-const CARD_HEIGHT = SCREEN_HEIGHT * 0.25; // 25% of screen height for cards
-const MARGIN = SCREEN_WIDTH * 0.03; // 3% margin
-const PADDING = SCREEN_WIDTH * 0.03; // 3% padding
+interface Service {
+  id: string;
+  name: string;
+  category: string;
+  image: string;
+  price: number;
+  rating: number;
+  businessId: string;
+  business?: Business;
+  isFavorite: boolean;
+}
 
-const services = [
-  {
-    id: '1',
-    category: 'Tour',
-    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
-    name: 'My Service Name',
-    price: 25,
-    createur: 'Amine Bacar',
-    rating: 4.52,
-    isFavoite: false,
-  },
-  {
-    id: '2',
-    category: 'Tour',
-    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
-    name: 'City Explorer',
-    price: 30,
-    createur: 'Amine Bacar',
-    rating: 4.78,
-    isFavoite: true,
-  },
-  {
-    id: '3',
-    category: 'Tour',
-    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
-    name: 'Desert Safari',
-    price: 45,
-    createur: 'Amine Bacar',
-    rating: 4.9,
-    isFavoite: false,
-  },
-  {
-    id: '4',
-    category: 'Tour',
-    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
-    name: 'Historic Walk',
-    price: 20,
-    createur: 'Amine Bacar',
-    rating: 4.2,
-    isFavoite: false,
-  },
-  {
-    id: '5',
-    category: 'Tour',
-    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
-    name: 'Nature Hike',
-    price: 35,
-    createur: 'Amine Bacar',
-    rating: 4.7,
-    isFavoite: true,
-  },
-  {
-    id: '6',
-    category: 'Tour',
-    image: 'https://res.cloudinary.com/dpelvamn2/image/upload/v1747917024/service_images/rnckmcuneb0jrtilavum.jpg',
-    name: 'Museum Pass',
-    price: 18,
-    createur: 'Amine Bacar',
-    rating: 4.4,
-    isFavoite: false,
-  },
-]
-export default function HomeScreen() {
-  const router = useRouter();
-  const navigation = useNavigation();
-  const [serviceList, setServices] = useState(services)
-  const toggleFavorite = (id: string) => {
-    const updated = services.map((service) =>
-      service.id === id
-        ? { ...service, isFavoite: !service.isFavoite }
-        : service
-    );
-    setServices(updated);
-  };
+export default function TravlerServices() {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
   useEffect(() => {
-    navigation.setOptions({
-      headerShown: true,
-      headerTransparent: true,
-      headerTitle: '',
-    });
+    fetchServicesWithBusinesses();
+  }, []);
+
+  const fetchServicesWithBusinesses = async () => {
+    try {
+      const servicesSnapshot = await getDocs(collection(db, 'services'));
+      const servicesData: Service[] = [];
+
+      const businessIdsSet = new Set<string>();
+      servicesSnapshot.forEach((doc) => {
+        const data = doc.data();
+        servicesData.push({
+          id: doc.id,
+          name: data.name,
+          category: data.category,
+          image: data.image,
+          price: data.price,
+          rating: data.rating || 0,
+          businessId: data.businessId,
+          isFavorite: false,
+        });
+        if (data.businessId) businessIdsSet.add(data.businessId);
+      });
+
+      // Fetch businesses by IDs
+      const businessIds = Array.from(businessIdsSet);
+      const businessesMap: Record<string, Business> = {};
+
+      await Promise.all(
+        businessIds.map(async (bid) => {
+          const businessDoc = await getDoc(doc(db, 'business', bid));
+          if (businessDoc.exists()) {
+            businessesMap[bid] = {
+              id: businessDoc.id,
+              name: businessDoc.data().name,
+              location: businessDoc.data().location,
+            };
+          }
+        })
+      );
+
+      // Combine business info with services
+      const combined = servicesData.map((service) => ({
+        ...service,
+        business: businessesMap[service.businessId],
+      }));
+
+      setServices(combined);
+    } catch (error) {
+      console.error('Error fetching services and businesses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleFavorite = (id: string) => {
+    setServices((prev) =>
+      prev.map((service) =>
+        service.id === id ? { ...service, isFavorite: !service.isFavorite } : service
+      )
+    );
+  };
+
+  const filteredServices = services.filter((s) =>
+    s.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={{ textAlign: 'center', marginTop: 10 }}>Loading services...</Text>
+      </SafeAreaView>
+    );
   }
-    , []);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.header}>Servies </Text>
+      <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
+        <Text style={styles.header}>Travler Services</Text>
+
         <View style={styles.searchContainer}>
           <View style={styles.searchBox}>
             <Feather name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
             <TextInput
-              placeholder="Search"
+              placeholder="Search services..."
               placeholderTextColor="#9CA3AF"
               style={styles.searchInput}
+              value={search}
+              onChangeText={setSearch}
             />
           </View>
-        
         </View>
-        <ScrollView
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalScroll}
-          decelerationRate="fast"
-        >
-          {serviceList.map((location) => (
-            <TouchableOpacity key={location.id} style={[styles.card, { width: CARD_WIDTH }]}>
+      </View>
 
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.horizontalScroll}
+        style={{ marginTop: 10 }}
+      >
+        {filteredServices.length === 0 ? (
+          <Text style={{ margin: 20, fontSize: 16 }}>No services found.</Text>
+        ) : (
+          filteredServices.map((service) => (
+            <TouchableOpacity key={service.id} style={[styles.card, { width: CARD_WIDTH }]}>
               <Image
-                source={{ uri: location.image }}
-                style={[styles.cardImage, { width: CARD_WIDTH * 0.40 }]}
-              >
-              </Image>
-              <View style={[styles.cardOverlay, { width: CARD_WIDTH * 0.60 }]}>
-                <TouchableOpacity style={styles.favoriteIcon} onPress={() => toggleFavorite(location.id)}>
-                  <MaterialIcons name="favorite" size={26} color={location.isFavoite ? "red" : "#ccc"} />
+                source={{ uri: service.image }}
+                style={[styles.cardImage, { width: CARD_WIDTH * 0.4 }]}
+              />
+              <View style={[styles.cardOverlay, { width: CARD_WIDTH * 0.6 }]}>
+                <TouchableOpacity
+                  style={styles.favoriteIcon}
+                  onPress={() => toggleFavorite(service.id)}
+                >
+                  <MaterialIcons
+                    name="favorite"
+                    size={26}
+                    color={service.isFavorite ? 'red' : '#ccc'}
+                  />
                 </TouchableOpacity>
-                <Text style={styles.cardTitle}>{location.name}</Text>
-                <Text style={[styles.textCategory]}> {location.category}</Text>
-                <Text style={styles.cardText} >{location.createur}</Text>
+                <Text style={styles.cardTitle}>{service.name}</Text>
+                <Text style={styles.textCategory}>{service.category}</Text>
+                <Text style={styles.cardText}>
+                  Business: {service.business?.name ?? 'Unknown'}
+                </Text>
                 <View style={styles.cardBottomRow}>
-                  {location.rating && (
-                    <View style={styles.cardRating}>
-                      <Text style={styles.cardRatingText}>{location.rating}</Text>
-                      <Ionicons name="star" size={14} color="#FFD700" />
-                    </View>
-                  )}
-                  <Text style={styles.cardText}>from {location.price} DT</Text>
-
+                  <View style={styles.cardRating}>
+                    <Text style={styles.cardRatingText}>{service.rating.toFixed(1)}</Text>
+                    <Ionicons name="star" size={14} color="#FFD700" />
+                  </View>
+                  <Text style={styles.cardText}>from {service.price} DT</Text>
                 </View>
               </View>
-
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+          ))
+        )}
       </ScrollView>
-    </SafeAreaView>)}
+    </SafeAreaView>
+  );
+}

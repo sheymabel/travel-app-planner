@@ -89,7 +89,7 @@ export default function BusinessProfile() {
 
   const getImageSource = () => {
     if (imageError || !businessData?.profileImage) {
-      return require('../../assets/images/tunis.png');
+      return require('../../assets/images/icon.png');
     }
     return { uri: businessData.profileImage };
   };
@@ -192,8 +192,7 @@ export default function BusinessProfile() {
             key={index}
             //style={styles.appItem}
             onPress={item.action}
-            accessibilityLabel={item.label}
-          >
+            accessibilityLabel={item.label}>
             <View >{item.icon}</View>
             <Text >{item.label}</Text>
           </TouchableOpacity>

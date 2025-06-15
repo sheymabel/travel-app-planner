@@ -11,7 +11,6 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
-import { Timestamp } from 'firebase/firestore';
 import { db, auth } from '../../configs/FirebaseConfig';
 import { setDoc, doc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -71,65 +70,78 @@ export default function businessRegisterScreen() {
   function showToast(message: string, type: string = 'success') {
     Toast.show({
       type,
-      position: 'top',
+      position: 'bottom',
       text1: message,
       visibilityTime: 3000,
     });
   };
 
-  const handleRegister = async () => {
-    if (!isFormValid) {
-      showToast('Please fill in all fields.', 'error');
-      return;
+ const handleRegister = async () => {
+  if (!isFormValid) {
+    showToast('Please fill in all fields.', 'error');
+    return;
+  }
+
+  const trimmedEmail = email.trim();
+  const trimmedFullName = fullName.trim();
+  const trimmedPhone = phone.trim();
+  const trimmedAddress = address.trim();
+  const trimmedDescription = description.trim();
+  const trimmedPassword = password;
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^[0-9]{8,14}$/;
+
+  if (!emailRegex.test(trimmedEmail)) {
+    showToast('Please enter a valid email address.', 'error');
+    return;
+  }
+
+  if (!phoneRegex.test(trimmedPhone)) {
+    showToast('Please enter a valid phone number.', 'error');
+    return;
+  }
+
+  if (trimmedPassword.length < 6) {
+    showToast('Password must be at least 6 characters long.', 'error');
+    return;
+  }
+
+  try {
+    setLoading(true);
+    setError('');
+
+    // Create user in Firebase Auth
+    const userCredential = await createUserWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
+    const uid = userCredential.user.uid;
+
+    // Store additional info in Firestore
+    await setDoc(doc(db, 'business', uid), {
+      fullName: trimmedFullName,
+      email: trimmedEmail,
+      phone: trimmedPhone,
+      address: trimmedAddress,
+      description: trimmedDescription,
+      category,
+      password,    });
+
+    showToast('Business registered successfully!');
+    setLoading(false);
+    router.replace('/sign-in');
+  } catch (err: any) {
+    console.error('Firebase error:', err);
+    setLoading(false);
+
+    if (err.code === 'auth/email-already-in-use') {
+      showToast('Email already in use.', 'error');
+    } else if (err.code === 'auth/weak-password') {
+      showToast('Password is too weak.', 'error');
+    } else {
+      showToast('Registration failed. Please try again.', 'error');
     }
+  }
+};
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[0-9]{8,14}$/;
-
-    if (!emailRegex.test(email)) {
-      showToast('Please enter a valid email address.', 'error');
-      return;
-    }
-
-    if (!phoneRegex.test(phone)) {
-      showToast('Please enter a valid phone number.', 'error');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError('');
-
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = userCredential.user.uid;
-
-      await setDoc(doc(db, 'business', uid), {
-        fullName,
-        email,
-        phone,
-        address,
-        description,
-        category,
-        password,
-        createdAt: Timestamp.now(),
-      });
-
-      showToast('business registered successfully!');
-      setLoading(false);
-      router.replace('/sign-in');
-    } catch (err: any) {
-      console.error('Firebase error:', err);
-      setLoading(false);
-
-      if (err.code === 'auth/email-already-in-use') {
-        showToast('Email already in use.', 'error');
-      } else if (err.code === 'auth/weak-password') {
-        showToast('Password is too weak.', 'error');
-      } else {
-        showToast('Registration failed. Please try again.', 'error');
-      }
-    }
-  };
 
   const headerAnimatedStyle = useAnimatedStyle(() => {
     return {
