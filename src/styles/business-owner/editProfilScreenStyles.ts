@@ -67,6 +67,8 @@ buttonText: {
     fontSize: 16,
     fontWeight: '600',
   },
+
+
   imageContainer: {
     alignItems: 'center',
     marginTop: 50,

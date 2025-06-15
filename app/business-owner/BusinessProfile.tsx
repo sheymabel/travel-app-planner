@@ -176,7 +176,7 @@ export default function BusinessProfile() {
               onPress={() => router.push('/ProfileBuisness/EditProfilebuss')}
               style={styles.editButton}
             >
-              <Text style={styles.editButtonText}>{t('EditProfile')}</Text>
+              <Text style={styles.editButtonText}>{t('Edit Profile')}</Text>
             </TouchableOpacity>
       {/* Description Card */}
       <View style={styles.infoCard}>

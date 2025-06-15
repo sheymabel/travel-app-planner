@@ -175,17 +175,17 @@ export default   StyleSheet.create({
   editButton: {
    backgroundColor: '#4263eb',
   paddingVertical: 14,
-  paddingHorizontal: 1,
+  paddingHorizontal: 20,
   borderRadius: 10,
  alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
   marginTop: 10,         // space above the button
-  marginBottom: 10,      // space below the button
+  marginBottom: 30,      // space below the button
   marginHorizontal: 99,  // horizontal spacing (left & right)
   width: '50%',
   shadowColor: '#4263eb',
-  shadowOffset: { width: 0, height: 5 },
+  shadowOffset: { width: 1, height: 5 },
   shadowOpacity: 0.25,
   shadowRadius: 6,
   elevation: 3,
