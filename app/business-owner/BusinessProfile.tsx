@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, ScrollView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAuth, signOut } from 'firebase/auth'; // Added signOut import
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../configs/FirebaseConfig';
@@ -88,7 +89,7 @@ export default function BusinessProfile() {
 
   const getImageSource = () => {
     if (imageError || !businessData?.profileImage) {
-      return require('../../assets/images/tunis.png');
+      return require('../../assets/images/icon.png');
     }
     return { uri: businessData.profileImage };
   };
@@ -119,19 +120,17 @@ export default function BusinessProfile() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.replace('/ProfileBuisness/EditProfilebuss')}
-          style={styles.editButton}
-        >
-          <Text style={styles.editButtonText}>{t('Edit')}</Text>
-        </TouchableOpacity>
-      </View>
-
+   <SafeAreaView style={styles.safeArea} edges={['top']} >
+         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+           <View style={styles.inner}>
+                   <View style={styles.header}>
+                     <Text style={styles.title} accessible={false}>Profile</Text>
+                   </View>
+                   </View>
+     
       {/* Profile Image */}
       <View style={styles.imageContainer}>
+        
         <Image
           source={getImageSource()}
           style={styles.profileImage}
@@ -173,10 +172,15 @@ export default function BusinessProfile() {
           <Text style={styles.infoText}>{businessData.website}</Text>
         </View>
       </View>
-
+ <TouchableOpacity
+              onPress={() => router.push('/ProfileBuisness/EditProfilebuss')}
+              style={styles.editButton}
+            >
+              <Text style={styles.editButtonText}>{t('EditProfile')}</Text>
+            </TouchableOpacity>
       {/* Description Card */}
       <View style={styles.infoCard}>
-        <Text style={styles.sectionTitle}>{t('business.aboutUs')}</Text>
+        <Text style={styles.sectionTitle}>{t('About Us')}</Text>
         <Text style={styles.descriptionText}>{businessData.description}</Text>
       </View>
 
@@ -188,13 +192,13 @@ export default function BusinessProfile() {
             key={index}
             //style={styles.appItem}
             onPress={item.action}
-            accessibilityLabel={item.label}
-          >
+            accessibilityLabel={item.label}>
             <View >{item.icon}</View>
             <Text >{item.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }

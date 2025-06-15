@@ -45,14 +45,14 @@ export default function HomeScreen() {
 
   const [loading, setLoading] = useState(true);
 
-  const toggleFavorite = (id: string) => {
-    const updated = services.map((service) =>
-      service.id === id
-        ? { ...service, isFavoite: !service.isFavoite }
-        : service
-    );
-    setServices(updated);
-  };
+  // const toggleFavorite = (id: string) => {
+  //   const updated = services.map((service) =>
+  //     service.id === id
+  //       ? { ...service, isFavoite: !service.isFavoite }
+  //       : service
+  //   );
+  //   setServices(updated);
+  // };
 
   const getAllServicesWithBusiness = async (): Promise<Service[]> => {
     const businessSnapshot = await getDocs(collection(db, 'business'));
@@ -157,7 +157,9 @@ export default function HomeScreen() {
                 style={[styles.cardImage, { width: CARD_WIDTH * 0.40 }]}
               />
               <View style={[styles.cardOverlay, { width: CARD_WIDTH * 0.60 }]}>
-                <TouchableOpacity style={styles.favoriteIcon} onPress={() => toggleFavorite(location.serviceId)}>
+                <TouchableOpacity style={styles.favoriteIcon} onPress={() => {
+                  // toggleFavorite(location.serviceId)
+                }}>
                   <MaterialIcons name="favorite" size={26} color={location.isFavorite ? "red" : "#ccc"} />
                 </TouchableOpacity>
 

@@ -15,10 +15,18 @@ export const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#1E293B'
+    color: '#1E293B',
+        alignItems: 'center',
+    justifyContent: 'center',
+    
   },
   formContainer: {
     flex: 1,
+  },
+   backButton: {
+    padding: 8,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 20,
   },
   imageUploadContainer: {
     alignItems: 'center',

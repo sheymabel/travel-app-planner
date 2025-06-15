@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, ActivityIndicator, Text } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Text, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../../configs/FirebaseConfig'; // adjust path if needed
-import ServiceForm from './ServiceFormm'; // Update path if needed
+import { auth, db } from '../../configs/FirebaseConfig';
+import ServiceForm from './ServiceFormm';
 import { styles } from '../../src/styles/business-owner/serviceStyles';
 
 interface ServiceFormData {
@@ -17,11 +17,13 @@ interface ServiceFormData {
 
 interface ServiceData extends ServiceFormData {
   id: string;
+  imageUrl?: string;
+  images?: string[];
 }
 
 const EditServiceScreen = () => {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [service, setService] = useState<ServiceData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,7 +33,7 @@ const EditServiceScreen = () => {
         const user = auth.currentUser;
         if (!user || !id) return;
 
-        const serviceRef = doc(db, 'business', user.uid, 'services', id as string);
+        const serviceRef = doc(db, 'business', user.uid, 'services', id);
         const docSnap = await getDoc(serviceRef);
 
         if (docSnap.exists()) {
@@ -42,10 +44,11 @@ const EditServiceScreen = () => {
             description: data.description || '',
             price: data.price ? data.price.toString() : '0',
             duration: data.duration || '',
-            image: data.image || (data.images && data.images[0]) || 'https://via.placeholder.com/150',
+            imageUrl: data.imageUrl || (data.images && data.images[0]) || '',
+            images: data.images || [],
           });
         } else {
-          console.warn('No such service found!');
+          Alert.alert('Service not found');
         }
       } catch (error) {
         console.error('Error fetching service:', error);
@@ -61,14 +64,15 @@ const EditServiceScreen = () => {
       const user = auth.currentUser;
       if (!user || !id) return;
 
-      const serviceRef = doc(db, 'business', user.uid, 'services', id as string);
+      const serviceRef = doc(db, 'business', user.uid, 'services', id);
 
       await updateDoc(serviceRef, {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
         duration: formData.duration,
-        image: formData.image || '', // update image or keep empty
+        imageUrl: formData.image || '',
+        images: formData.image ? [formData.image] : [],
       });
 
       router.replace('/business-owner/BusinessServices');
@@ -90,9 +94,9 @@ const EditServiceScreen = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <Ionicons 
-          name="arrow-back" 
-          size={24} 
+        <Ionicons
+          name="arrow-back"
+          size={24}
           onPress={() => router.replace('/business-owner/BusinessServices')}
           color="#374151"
         />
@@ -100,7 +104,7 @@ const EditServiceScreen = () => {
         <View style={{ width: 24 }} />
       </View>
 
-      <ServiceForm 
+      <ServiceForm
         initialData={service}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}

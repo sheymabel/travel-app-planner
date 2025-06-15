@@ -1,5 +1,4 @@
-import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,25 +6,21 @@ import {
   FlatList,
   Image,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { styles } from '../../src/styles/business-owner/homebusin';
-import { Colors } from '../../constants/Colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import app from '../../configs/FirebaseConfig'; // ✅ Update path as needed
+import { collection, getDocs } from 'firebase/firestore';
+import app, { db } from '../../configs/FirebaseConfig'; // Your Firebase config import
+import { Colors } from '../../constants/Colors';
 
 interface Service {
   id: string;
   title?: string;
   name?: string;
-  image?: string;
-  images?: string[];
-  duration?: string;
-  price?: string | number;
-  rating?: number;
-  businessId?: string;
+  imageUrl?: string;
 }
 
 const BusinessServicesScreen = () => {
@@ -33,7 +28,7 @@ const BusinessServicesScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const auth = getAuth(app); // ✅ get auth instance
+  const auth = getAuth(app);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -42,10 +37,16 @@ const BusinessServicesScreen = () => {
           setLoading(true);
           setError(null);
 
-          const API_URL = `http://localhost:5000/api/service/business/${user.uid}`;
-          const response = await axios.get<Service[]>(API_URL);
+          // Reference to user's services collection
+          const servicesRef = collection(db, 'business', user.uid, 'services');
+          const snapshot = await getDocs(servicesRef);
 
-          setServices(response.data);
+          const fetchedServices: Service[] = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Service[];
+
+          setServices(fetchedServices);
         } catch (err) {
           console.error('Error fetching services:', err);
           setError('Failed to load services. Please try again later.');
@@ -69,15 +70,13 @@ const BusinessServicesScreen = () => {
   };
 
   const renderServiceImage = ({ item: service }: { item: Service }) => {
-    const imageUri = service.images?.[0] || service.image || 'https://placehold.co/150x150/png';
-
     return (
       <TouchableOpacity
         style={imageStyles.imageContainer}
         onPress={() => handleServicePress(service)}
       >
         <Image
-          source={{ uri: imageUri }}
+          source={{ uri: service.imageUrl || 'https://placehold.co/150x150/png' }}
           style={imageStyles.serviceImage}
           resizeMode="cover"
         />
@@ -92,7 +91,8 @@ const BusinessServicesScreen = () => {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text>Loading...</Text>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text>Loading services...</Text>
         </View>
       </SafeAreaView>
     );
@@ -161,6 +161,34 @@ const imageStyles = StyleSheet.create({
     fontSize: 14,
     color: Colors.gray[800],
     textAlign: 'center',
+  },
+});
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.gray[300],
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.gray[900],
+  },
+  filterButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    backgroundColor: Colors.primary,
+    borderRadius: 30,
+    padding: 15,
+    elevation: 5,
   },
 });
 

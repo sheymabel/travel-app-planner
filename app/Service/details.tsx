@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../../src/styles/business-owner/detils';
+
 interface Service {
   id: string;
   title?: string;
@@ -27,6 +28,7 @@ interface Service {
   price?: string | number;
   rating?: number;
   description?: string;
+  imageUrl?: string; // Added to align with other screens
 }
 
 const { width } = Dimensions.get('window');
@@ -60,7 +62,19 @@ const ServiceDetailsScreen = () => {
         const serviceSnap = await getDoc(serviceRef);
 
         if (serviceSnap.exists()) {
-          setService({ id: serviceSnap.id, ...serviceSnap.data() } as Service);
+          const data = serviceSnap.data() as Service;
+          setService({
+            id: serviceSnap.id,
+            title: data.title,
+            name: data.name,
+            image: data.image,
+            images: data.images,
+            duration: data.duration,
+            price: data.price,
+            rating: data.rating,
+            description: data.description,
+            imageUrl: data.imageUrl || data.image || (data.images && data.images[0]), // Prioritize imageUrl
+          });
         } else {
           setError('Service not found.');
         }
@@ -91,7 +105,7 @@ const ServiceDetailsScreen = () => {
     );
   }
 
-  const images = service.images?.length ? service.images : [service.image || 'https://placehold.co/600x400'];
+  const images = service.images?.length ? service.images : [service.imageUrl || service.image || 'https://placehold.co/600x400'];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -182,6 +196,4 @@ const ServiceDetailsScreen = () => {
   );
 };
 
-
-  
 export default ServiceDetailsScreen;
