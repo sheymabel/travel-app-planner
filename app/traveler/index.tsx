@@ -1,187 +1,189 @@
-import React, { useEffect, useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  Image,
-  TextInput,
-  TouchableOpacity,
-  Dimensions,
-  ActivityIndicator,
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
-import { db } from '../../configs/FirebaseConfig'; // your firebase config file
-import { styles } from '../../src/styles/styles'; // your styles
+import { Text, View, TextInput, ScrollView, Image, TouchableOpacity, Dimensions, Alert, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH * 0.9;
+import { StatusBar } from 'expo-status-bar';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { styles } from '../../src/styles/styles';
+import { useState, useEffect } from 'react';
+import { useNavigation, useRouter } from 'expo-router';
+import { getAuth } from '@firebase/auth';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../configs/FirebaseConfig';
+const { width, height } = Dimensions.get('window');
+const CARD_WIDTH = width * 0.89;
+
+
+
+
 
 interface Business {
   id: string;
   name: string;
-  location?: string;
+  city?: string;
+  address?: string;
 }
 
 interface Service {
-  id: string;
+  serviceId: string;
   name: string;
-  category: string;
-  image: string;
   price: number;
-  rating: number;
-  businessId: string;
-  business?: Business;
-  isFavorite: boolean;
+  category?: string | null;
+  description?: string;
+  image?: string;
+  rating?: number;
+  isFavorite?: boolean;
+  business: Business;
 }
 
-export default function TravlerServices() {
-  const [services, setServices] = useState<Service[]>([]);
+export default function HomeScreen() {
+  const router = useRouter();
+  const navigation = useNavigation();
+  const [serviceList, setServices] = useState<Service[]>([])
+  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
+  const [searchText, setSearchText] = useState('');
+
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    fetchServicesWithBusinesses();
-  }, []);
+  // const toggleFavorite = (id: string) => {
+  //   const updated = services.map((service) =>
+  //     service.id === id
+  //       ? { ...service, isFavoite: !service.isFavoite }
+  //       : service
+  //   );
+  //   setServices(updated);
+  // };
 
-  const fetchServicesWithBusinesses = async () => {
-    try {
-      const servicesSnapshot = await getDocs(collection(db, 'services'));
-      const servicesData: Service[] = [];
+  const getAllServicesWithBusiness = async (): Promise<Service[]> => {
+    const businessSnapshot = await getDocs(collection(db, 'business'));
+    let servicesWithBusiness: Service[] = [];
 
-      const businessIdsSet = new Set<string>();
-      servicesSnapshot.forEach((doc) => {
-        const data = doc.data();
-        servicesData.push({
-          id: doc.id,
-          name: data.name,
-          category: data.category,
-          image: data.image,
-          price: data.price,
-          rating: data.rating || 0,
-          businessId: data.businessId,
+    for (const businessDoc of businessSnapshot.docs) {
+      const businessId = businessDoc.id;
+      const businessData = businessDoc.data();
+
+      const servicesSnapshot = await getDocs(collection(db, 'business', businessId, 'services'));
+
+      for (const serviceDoc of servicesSnapshot.docs) {
+        const serviceData = serviceDoc.data();
+
+        servicesWithBusiness.push({
+          serviceId: serviceDoc.id,
+          name: serviceData.name,
+          price: serviceData.price,
+          image: serviceData.imageUrl ?? '',
+          category: serviceData.category ?? null,
+          description: serviceData.description ?? '',
+          rating: serviceData.rating ?? 1,
           isFavorite: false,
+          business: {
+            id: businessId,
+            name: businessData.name,
+            city: businessData.city,
+            address: businessData.address,
+          },
         });
-        if (data.businessId) businessIdsSet.add(data.businessId);
-      });
+      }
 
-      // Fetch businesses by IDs
-      const businessIds = Array.from(businessIdsSet);
-      const businessesMap: Record<string, Business> = {};
 
-      await Promise.all(
-        businessIds.map(async (bid) => {
-          const businessDoc = await getDoc(doc(db, 'business', bid));
-          if (businessDoc.exists()) {
-            businessesMap[bid] = {
-              id: businessDoc.id,
-              name: businessDoc.data().name,
-              location: businessDoc.data().location,
-            };
-          }
-        })
-      );
-
-      // Combine business info with services
-      const combined = servicesData.map((service) => ({
-        ...service,
-        business: businessesMap[service.businessId],
-      }));
-
-      setServices(combined);
-    } catch (error) {
-      console.error('Error fetching services and businesses:', error);
-    } finally {
-      setLoading(false);
     }
+
+    return servicesWithBusiness;
   };
 
-  const toggleFavorite = (id: string) => {
-    setServices((prev) =>
-      prev.map((service) =>
-        service.id === id ? { ...service, isFavorite: !service.isFavorite } : service
-      )
+  const onSearchPress = () => {
+    console.log('searchText:',searchText)
+    const filtered = serviceList.filter(service =>
+      service.name.toLowerCase().includes(searchText.toLowerCase())
     );
+    console.log('filtered',filtered)
+    setFilteredServices(filtered);
   };
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerTransparent: true,
+      headerTitle: '',
+    });
+    setLoading(true)
+    getAllServicesWithBusiness().then((services) => {
 
-  const filteredServices = services.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
-  );
+      setServices(services)
+      setFilteredServices(services);
+      setLoading(false);
+    }).catch((error) => {
+      setLoading(false);
 
+    })
+  }, []);
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={{ textAlign: 'center', marginTop: 10 }}>Loading services...</Text>
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator size="large" color="#3B82F6" style={styles.loader} />
       </SafeAreaView>
     );
   }
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-      <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
-        <Text style={styles.header}>Travler Services</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.header}>Nordic scenery</Text>
 
         <View style={styles.searchContainer}>
           <View style={styles.searchBox}>
+            <TouchableOpacity  onPress={onSearchPress}>
             <Feather name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
+            </TouchableOpacity>
             <TextInput
-              placeholder="Search services..."
+               value={searchText}
+              onChangeText={setSearchText}
+              placeholder="Search"
               placeholderTextColor="#9CA3AF"
               style={styles.searchInput}
-              value={search}
-              onChangeText={setSearch}
             />
           </View>
         </View>
-      </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.horizontalScroll}
-        style={{ marginTop: 10 }}
-      >
-        {filteredServices.length === 0 ? (
-          <Text style={{ margin: 20, fontSize: 16 }}>No services found.</Text>
-        ) : (
-          filteredServices.map((service) => (
-            <TouchableOpacity key={service.id} style={[styles.card, { width: CARD_WIDTH }]}>
+        <ScrollView
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalScroll}
+          decelerationRate="fast"
+        >
+
+          {filteredServices.map((location) => (
+            <TouchableOpacity key={location.serviceId} style={[styles.card, { width: CARD_WIDTH }]}>
               <Image
-                source={{ uri: service.image }}
-                style={[styles.cardImage, { width: CARD_WIDTH * 0.4 }]}
+                source={{ uri: location.image }}
+                style={[styles.cardImage, { width: CARD_WIDTH * 0.40 }]}
               />
-              <View style={[styles.cardOverlay, { width: CARD_WIDTH * 0.6 }]}>
-                <TouchableOpacity
-                  style={styles.favoriteIcon}
-                  onPress={() => toggleFavorite(service.id)}
-                >
-                  <MaterialIcons
-                    name="favorite"
-                    size={26}
-                    color={service.isFavorite ? 'red' : '#ccc'}
-                  />
+              <View style={[styles.cardOverlay, { width: CARD_WIDTH * 0.60 }]}>
+                <TouchableOpacity style={styles.favoriteIcon} onPress={() => {
+                  // toggleFavorite(location.serviceId)
+                }}>
+                  <MaterialIcons name="favorite" size={26} color={location.isFavorite ? "red" : "#ccc"} />
                 </TouchableOpacity>
-                <Text style={styles.cardTitle}>{service.name}</Text>
-                <Text style={styles.textCategory}>{service.category}</Text>
-                <Text style={styles.cardText}>
-                  Business: {service.business?.name ?? 'Unknown'}
-                </Text>
+
+                <Text style={styles.cardTitle}>{location.name}</Text>
+
+                <Text style={styles.textCategory}>{location.category}</Text>
+
+                {/* Replace createur with business name or owner */}
+                <Text style={styles.cardText}>{location.business?.name}</Text>
+
                 <View style={styles.cardBottomRow}>
-                  <View style={styles.cardRating}>
-                    <Text style={styles.cardRatingText}>{service.rating.toFixed(1)}</Text>
-                    <Ionicons name="star" size={14} color="#FFD700" />
-                  </View>
-                  <Text style={styles.cardText}>from {service.price} DT</Text>
+                  {location.rating && (
+                    <View style={styles.cardRating}>
+                      <Text style={styles.cardRatingText}>{location.rating}</Text>
+                      <Ionicons name="star" size={14} color="#FFD700" />
+                    </View>
+                  )}
+                  <Text style={styles.cardText}>from {location.price} DT</Text>
                 </View>
               </View>
             </TouchableOpacity>
-          ))
-        )}
+          ))}
+        </ScrollView>
       </ScrollView>
-    </SafeAreaView>
-  );
+    </SafeAreaView>)
+
 }
