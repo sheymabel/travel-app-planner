@@ -8,11 +8,10 @@ import { styles } from '../../src/styles/styles';
 import { useState, useEffect } from 'react';
 import { useNavigation, useRouter } from 'expo-router';
 import { getAuth } from '@firebase/auth';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../../configs/FirebaseConfig';
+import { addDoc, collection, deleteDoc, doc, getDocs, query, serverTimestamp, where } from 'firebase/firestore';
+import { auth, db } from '../../configs/FirebaseConfig';
 const { width, height } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.89;
-
 
 
 
@@ -39,26 +38,80 @@ interface Service {
 
 export default function HomeScreen() {
   const router = useRouter();
+
+
   const navigation = useNavigation();
   const [serviceList, setServices] = useState<Service[]>([])
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [searchText, setSearchText] = useState('');
-
   const [loading, setLoading] = useState(true);
 
-  // const toggleFavorite = (id: string) => {
-  //   const updated = services.map((service) =>
-  //     service.id === id
-  //       ? { ...service, isFavoite: !service.isFavoite }
-  //       : service
-  //   );
-  //   setServices(updated);
-  // };
+  
+  const toggleFavorite = (serviceId: string, isFavorite: boolean) => {
+    const user = auth.currentUser;
+
+    if (user) {
+      const travelerId = user.uid.toString()
+      console.log('test')
+      if (isFavorite) {
+        console.log('remove')
+        removeFromFavorites(travelerId, serviceId);
+      } else {
+        console.log('add favoite  ')
+
+        addToFavorites(travelerId, serviceId)
+      }
+    }
+  };
   // () => 
+
+  const addToFavorites = async (travelerId: string, serviceId: string) => {
+    try {
+      await addDoc(collection(db, 'favorites'), {
+        travelerId,
+        serviceId,
+        createdAt: serverTimestamp()
+      });
+      console.log('Favorite added!');
+    } catch (error) {
+      console.error('Error adding favorite:', error);
+    }
+  };
+
+  const removeFromFavorites = async (travelerId: string, serviceId: string) => {
+    try {
+      const favQuery = query(
+        collection(db, 'favorites'),
+        where('travelerId', '==', travelerId),
+        where('serviceId', '==', serviceId)
+      );
+      const snapshot = await getDocs(favQuery);
+      snapshot.forEach(async (favDoc) => {
+        await deleteDoc(doc(db, 'favorites', favDoc.id));
+      });
+      console.log('Favorite removed!');
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+    }
+  };
+
   const getAllServicesWithBusiness = async (): Promise<Service[]> => {
+  
+    const user = auth.currentUser;
+
     const businessSnapshot = await getDocs(collection(db, 'business'));
     let servicesWithBusiness: Service[] = [];
-
+    if(!user){
+      return []
+      console.log('test')
+    }
+    const favoritesSnapshot = await getDocs(
+      query(collection(db, 'favorites'), where('travelerId', '==', user.uid))
+    );
+    const favoriteServiceIds = new Set(
+      favoritesSnapshot.docs.map((doc) => doc.data().serviceId)
+    );
+    console.log('favoriteServiceIds', favoriteServiceIds)
     for (const businessDoc of businessSnapshot.docs) {
       const businessId = businessDoc.id;
       const businessData = businessDoc.data();
@@ -67,7 +120,7 @@ export default function HomeScreen() {
 
       for (const serviceDoc of servicesSnapshot.docs) {
         const serviceData = serviceDoc.data();
-
+        // const serviceId = serviceDoc.id;
         servicesWithBusiness.push({
           serviceId: serviceDoc.id,
           name: serviceData.name,
@@ -76,12 +129,12 @@ export default function HomeScreen() {
           category: serviceData.category ?? null,
           description: serviceData.description ?? '',
           rating: serviceData.rating ?? 1,
-          isFavorite: false,
+          isFavorite: favoriteServiceIds.has(serviceDoc.id),
           business: {
             id: businessId,
             name: businessData.name,
             city: businessData.city,
-            phone:businessData.phone,
+            phone: businessData.phone,
           },
         });
       }
@@ -91,9 +144,9 @@ export default function HomeScreen() {
 
     return servicesWithBusiness;
   };
-  const selectedService = (businessId:string,serviceId: string) => {
+  const selectedService = (businessId: string, serviceId: string) => {
 
-  router.push(`/Service/ServiceTravelerScreen?businessId=${businessId}&serviceId=${serviceId}`);
+    router.push(`/Service/ServiceTravelerScreen?businessId=${businessId}&serviceId=${serviceId}`);
 
   }
 
@@ -162,7 +215,7 @@ export default function HomeScreen() {
               />
               <View style={[styles.cardOverlay, { width: CARD_WIDTH * 0.60 }]}>
                 <TouchableOpacity style={styles.favoriteIcon} onPress={() => {
-                  // toggleFavorite(location.serviceId)
+                 location.isFavorite !==undefined&&toggleFavorite(location.serviceId,location.isFavorite)
                 }}>
                   <MaterialIcons name="favorite" size={26} color={location.isFavorite ? "red" : "#ccc"} />
                 </TouchableOpacity>

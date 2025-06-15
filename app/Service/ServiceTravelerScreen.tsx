@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { auth, db } from '../../configs/FirebaseConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -82,9 +82,20 @@ const ServiceTravelerScreen = () => {
   const router = useRouter();
 
   const getServiceById = async (businessId: string, serviceId: string): Promise<Service | null> => {
+    const user = auth.currentUser;
+    if (!user) {
+      console.log('test')
+      return null
+
+    }
     const businessRef = doc(db, 'business', businessId);
     const businessSnap = await getDoc(businessRef);
-
+    const favoritesSnapshot = await getDocs(
+      query(collection(db, 'favorites'), where('travelerId', '==', user.uid))
+    );
+    const favoriteServiceIds = new Set(
+      favoritesSnapshot.docs.map((doc) => doc.data().serviceId)
+    );
     if (!businessSnap.exists()) return null;
 
     const businessData = businessSnap.data();
@@ -104,7 +115,7 @@ const ServiceTravelerScreen = () => {
       category: serviceData.category ?? null,
       description: serviceData.description ?? '',
       rating: serviceData.rating ?? 1,
-      isFavorite: false,
+      isFavorite: favoriteServiceIds.has(serviceSnap.id),
       business: {
         id: businessId,
         name: businessData.fullName,
