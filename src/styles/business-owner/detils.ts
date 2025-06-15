@@ -8,9 +8,28 @@ const CARD_WIDTH = (width - 48) / 2; // 2 columns with margins
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
+    
     backgroundColor: Colors.white,
   },
+    favoriteIcon: {
+    width: 30,
+    height: 30,
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1,
+
+
+  },
   
+
+   profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: '#e9ecef',
+  },
   // Header styles (clean and transparent)
   header: {
     flexDirection: 'row',
@@ -71,10 +90,10 @@ export const styles = StyleSheet.create({
        
 
     padding: 20,
-    paddingTop: 5,
+    
     backgroundColor: Colors.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
     marginTop: -10,
   },
   title: {

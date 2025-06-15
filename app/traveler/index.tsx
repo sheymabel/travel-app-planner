@@ -22,6 +22,7 @@ interface Business {
   name: string;
   city?: string;
   address?: string;
+  phone?: string;
 }
 
 interface Service {
@@ -53,7 +54,7 @@ export default function HomeScreen() {
   //   );
   //   setServices(updated);
   // };
-
+  // () => 
   const getAllServicesWithBusiness = async (): Promise<Service[]> => {
     const businessSnapshot = await getDocs(collection(db, 'business'));
     let servicesWithBusiness: Service[] = [];
@@ -80,7 +81,7 @@ export default function HomeScreen() {
             id: businessId,
             name: businessData.name,
             city: businessData.city,
-            address: businessData.address,
+            phone:businessData.phone,
           },
         });
       }
@@ -90,13 +91,16 @@ export default function HomeScreen() {
 
     return servicesWithBusiness;
   };
+  const selectedService = (businessId:string,serviceId: string) => {
+
+  router.push(`/Service/ServiceTravelerScreen?businessId=${businessId}&serviceId=${serviceId}`);
+
+  }
 
   const onSearchPress = () => {
-    console.log('searchText:',searchText)
     const filtered = serviceList.filter(service =>
       service.name.toLowerCase().includes(searchText.toLowerCase())
     );
-    console.log('filtered',filtered)
     setFilteredServices(filtered);
   };
   useEffect(() => {
@@ -131,11 +135,11 @@ export default function HomeScreen() {
 
         <View style={styles.searchContainer}>
           <View style={styles.searchBox}>
-            <TouchableOpacity  onPress={onSearchPress}>
-            <Feather name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
+            <TouchableOpacity onPress={onSearchPress}>
+              <Feather name="search" size={20} color="#9CA3AF" style={styles.searchIcon} />
             </TouchableOpacity>
             <TextInput
-               value={searchText}
+              value={searchText}
               onChangeText={setSearchText}
               placeholder="Search"
               placeholderTextColor="#9CA3AF"
@@ -151,7 +155,7 @@ export default function HomeScreen() {
         >
 
           {filteredServices.map((location) => (
-            <TouchableOpacity key={location.serviceId} style={[styles.card, { width: CARD_WIDTH }]}>
+            <TouchableOpacity key={location.serviceId} onPress={() => selectedService(location.business.id,location.serviceId)} style={[styles.card, { width: CARD_WIDTH }]}>
               <Image
                 source={{ uri: location.image }}
                 style={[styles.cardImage, { width: CARD_WIDTH * 0.40 }]}
