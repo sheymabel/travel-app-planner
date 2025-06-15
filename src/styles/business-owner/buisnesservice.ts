@@ -20,8 +20,8 @@ export const styles = StyleSheet.create({
     elevation: 1,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 24,
+        fontWeight: 'bold',
     color: '#111827',
   },
   loadingContainer: {

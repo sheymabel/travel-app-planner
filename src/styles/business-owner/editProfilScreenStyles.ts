@@ -33,11 +33,9 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 22,
+   fontSize: 22,
     fontWeight: 'bold',
-    color: '#24282EFF',
     flex: 1,
-    textAlign: 'center',
   },
   editButton: {
   backgroundColor: '#4263eb',

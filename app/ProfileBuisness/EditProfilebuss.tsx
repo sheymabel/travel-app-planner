@@ -22,7 +22,7 @@ import styles from '../../src/styles/business-owner/editProfilScreenStyles';
 // Interface for Business Profile
 interface BusinessData {
   id: string; // Firestore document ID
-  name: string; // Updated from fullName to name
+  fullName: string; // Updated from fullName to name
   email: string;
   phone: string;
   businessAddress: string;
@@ -40,7 +40,7 @@ export default function EditProfileBusiness() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [businessData, setBusinessData] = useState<BusinessData>({
     id: '',
-    name: '', // Updated from previous default
+    fullName: '', // Updated from previous default
     email: '', // Updated from sheyma@gmail.com
     phone: '', // Matches your input
     businessAddress: '', // Updated from 123 New Street, City
@@ -99,7 +99,7 @@ export default function EditProfileBusiness() {
   };
 
   const showSaveConfirmation = () => {
-    if (!businessData.name.trim() || !businessData.email.trim()) {
+    if (!businessData.fullName.trim() || !businessData.email.trim()) {
       return Alert.alert('Error', 'Name and Email are required');
     }
     setShowConfirmation(true);
@@ -113,7 +113,7 @@ export default function EditProfileBusiness() {
       if (!user) throw new Error('Not signed in');
 
       const updatedData: Omit<BusinessData, 'id'> = {
-        name: businessData.name,
+        fullName: businessData.fullName,
         email: businessData.email,
         phone: businessData.phone || '',
         businessAddress: businessData.businessAddress || '',
@@ -172,18 +172,18 @@ export default function EditProfileBusiness() {
       </TouchableOpacity>
 
       {/* Form Fields */}
-      {(['name', 'email', 'phone', 'businessAddress', 'category', 'city', 'description'] as const).map(
+      {(['fullName', 'email', 'phone', 'businessAddress', 'category', 'city', 'description'] as const).map(
         (field) => (
           <View style={styles.formGroup} key={field}>
             <Text style={styles.label}>
               {field === 'businessAddress' ? 'Business Address' : field.charAt(0).toUpperCase() + field.slice(1)}
-              {['name', 'email'].includes(field) ? '*' : ''}
+              {['fullName', 'email'].includes(field) ? '*' : ''}
             </Text>
             <TextInput
               style={[styles.input, field === 'description' && styles.multilineInput]}
               value={businessData[field]}
               onChangeText={(text) => setBusinessData((prev) => ({ ...prev, [field]: text }))} // Functional update
-              placeholder={`Enter ${field === 'name' ? 'name' : field}`}
+              placeholder={`Enter ${field === 'fullName' ? 'fullName' : field}`}
               keyboardType={
                 field === 'email' ? 'email-address' : field === 'phone' ? 'phone-pad' : 'default'
               }
