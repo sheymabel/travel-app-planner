@@ -3,7 +3,28 @@ import { StyleSheet } from 'react-native';
 import { Colors } from '../../constants/Colors';
 
 export const styles = StyleSheet.create({
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+  },
+  safeArea: {
+    flex: 1,
 
+  },
+  searchButton: {
+    backgroundColor: '#3B82F6',  // nice blue
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  searchButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
+  },
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
@@ -117,7 +138,7 @@ export const styles = StyleSheet.create({
   cardOverlay: {
     backgroundColor: '#F9FAFB', // Dark overlay for text visibility
     padding: 15,
-    opacity:0.9,
+    opacity: 0.9,
     // Match parent rounding
     borderBottomRightRadius: 20,
   },
