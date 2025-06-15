@@ -40,13 +40,13 @@ export default function EditProfileBusiness() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [businessData, setBusinessData] = useState<BusinessData>({
     id: '',
-    name: 'hedi', // Updated from previous default
-    email: 'hedi@gmail.com', // Updated from sheyma@gmail.com
-    phone: '+12345678900', // Matches your input
-    businessAddress: 'tunis', // Updated from 123 New Street, City
-    category: 'Utilitaire', // Matches your input
-    city: 'Sfax Ville, Sfax', // Matches your input
-    description: 'Best restaurant in town', // Matches your input
+    name: '', // Updated from previous default
+    email: '', // Updated from sheyma@gmail.com
+    phone: '', // Matches your input
+    businessAddress: '', // Updated from 123 New Street, City
+    category: '', // Matches your input
+    city: '', // Matches your input
+    description: '', // Matches your input
     profileImage: '', // Initialized as empty string (no base64 data yet)
   });
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -61,7 +61,7 @@ export default function EditProfileBusiness() {
           return;
         }
         setLoading(true);
-        const snap = await getDoc(doc(db, 'Business', user.uid));
+        const snap = await getDoc(doc(db, 'business', user.uid));
         if (!snap.exists()) {
           Alert.alert('Error', 'Business profile not found');
           setBusinessData({ ...businessData, id: user.uid, email: user.email || 'hedi@gmail.com' });

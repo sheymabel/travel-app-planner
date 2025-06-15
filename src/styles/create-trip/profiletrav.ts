@@ -172,29 +172,38 @@ export default   StyleSheet.create({
     paddingHorizontal: 30,
   },
   
-  // Action Buttons
   editButton: {
-    backgroundColor: '#4263eb',
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
-    shadowColor: '#4263eb',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+   backgroundColor: '#4263eb',
+  paddingVertical: 14,
+  paddingHorizontal: 1,
+  borderRadius: 10,
+ alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  marginTop: 10,         // space above the button
+  marginBottom: 10,      // space below the button
+  marginHorizontal: 99,  // horizontal spacing (left & right)
+  width: '50%',
+  shadowColor: '#4263eb',
+  shadowOffset: { width: 0, height: 5 },
+  shadowOpacity: 0.25,
+  shadowRadius: 6,
+  elevation: 3,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
   editButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  
   // Settings Section
   settingsSection: {
-    marginTop: 24,
-    marginBottom: 40,
+    marginTop: 1,
+    marginBottom: 5,
   },
   settingsTitle: {
     fontSize: 18,
