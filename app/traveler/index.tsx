@@ -42,7 +42,7 @@ export default function HomeScreen() {
 
   const navigation = useNavigation();
   const [serviceList, setServices] = useState<Service[]>([])
-  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
+  const [filteredServices, setFilteredServices] = useState<Service[]>(serviceList);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
 

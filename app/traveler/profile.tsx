@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather, AntDesign, MaterialIcons, FontAwesome } from '@expo/vector-icons';
-import { useRouter,useNavigation} from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import { getAuth, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../configs/FirebaseConfig';
@@ -40,13 +40,13 @@ export default function TravelerProfileScreen() {
   const [traveler, setTraveler] = useState<TravelerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
-useEffect(() => {
-     navigation.setOptions({
+  useEffect(() => {
+    navigation.setOptions({
       headerShown: true,
       headerTransparent: true,
       headerTitle: '',
     });
-     }, []);
+  }, []);
   const fetchTraveler = useCallback(async () => {
     try {
       const user = auth.currentUser;
@@ -105,7 +105,7 @@ useEffect(() => {
     setLanguageModalVisible(false);
   }, []);
 
-  
+
 
   const renderMenuItem = useCallback(
     (
@@ -135,7 +135,8 @@ useEffect(() => {
     {
       icon: <Ionicons name="heart-outline" size={24} color="#1F2937" />,
       label: t('favourites'),
-      
+      action: () => router.push('/Trip/favorites'),
+
     },
   ];
 
@@ -167,10 +168,10 @@ useEffect(() => {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.inner}>
-                <View style={styles.header}>
-                  <Text style={styles.title} accessible={false}>Profile</Text>
-                </View>
-                </View>
+          <View style={styles.header}>
+            <Text style={styles.title} accessible={false}>Profile</Text>
+          </View>
+        </View>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <View style={styles.profileImageContainer}>
@@ -195,44 +196,44 @@ useEffect(() => {
           <Text style={styles.profileName}>{traveler.fullName}</Text>
           <Text style={styles.profileEmail}>{traveler.email}</Text>
         </View>
-          <View >
-            {traveler.bio && (
-              <View style={styles.infoCard}>
-                <Text style={styles.sectionTitle}>{t('about')}</Text>
-                <Text style={styles.profileBio}>{traveler.bio}</Text>
+        <View >
+          {traveler.bio && (
+            <View style={styles.infoCard}>
+              <Text style={styles.sectionTitle}>{t('about')}</Text>
+              <Text style={styles.profileBio}>{traveler.bio}</Text>
+            </View>
+          )}
+          <View style={styles.infoCard}>
+            <Text style={styles.sectionTitle}>{t('contactInfo')}</Text>
+            {traveler.phone && (
+              <View style={styles.infoRow}>
+                <Ionicons name="call-outline" size={20} color="#6B7280" />
+                <Text style={styles.infoText}>{traveler.phone}</Text>
               </View>
             )}
-            <View style={styles.infoCard}>
-              <Text style={styles.sectionTitle}>{t('contactInfo')}</Text>
-              {traveler.phone && (
-                <View style={styles.infoRow}>
-                  <Ionicons name="call-outline" size={20} color="#6B7280" />
-                  <Text style={styles.infoText}>{traveler.phone}</Text>
-                </View>
-              )}
-              {traveler.address && (
-                <View style={styles.infoRow}>
-                  <Ionicons name="location-outline" size={20} color="#6B7280" />
-                  <Text style={styles.infoText}>{traveler.address}</Text>
-                </View>
-              )}
-            </View>
-
-            <TouchableOpacity
-              onPress={() => router.push('/ProfileTravel/EditProfileTravel')}
-              style={styles.editButton}
-            >
-              <Text style={styles.editButtonText}>{t('editProfile')}</Text>
-            </TouchableOpacity>
-          </View>
-          <View >
-             <TouchableOpacity                         
-              onPress={() => router.replace('/Trip/Favorites')}>
-              <View style={styles.emptyState}>
+            {traveler.address && (
+              <View style={styles.infoRow}>
+                <Ionicons name="location-outline" size={20} color="#6B7280" />
+                <Text style={styles.infoText}>{traveler.address}</Text>
               </View>
-            </TouchableOpacity>
+            )}
           </View>
-  
+
+          <TouchableOpacity
+            onPress={() => router.push('/ProfileTravel/EditProfileTravel')}
+            style={styles.editButton}
+          >
+            <Text style={styles.editButtonText}>{t('editProfile')}</Text>
+          </TouchableOpacity>
+        </View>
+        <View >
+          <TouchableOpacity
+          >
+            <View style={styles.emptyState}>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Settings Section */}
         <View style={styles.settingsSection}>
           <Text style={styles.settingsTitle}>{t('settings')}</Text>
